@@ -111,6 +111,7 @@ html/scripts/php/processlogs.php -text
 html/scripts/php/vacuumdb.php -text
 html/scripts/php/vacuumtsyslog.php -text
 html/scripts/php/weeklyindexrebuild.php -text
+html/scripts/php/weeklyreport.php -text
 html/smtversion -text
 html/template.php -text
 html/view.php -text
