@@ -1,5 +1,5 @@
 #!/usr/bin/php
-<%
+<?
 /*=============================================================================
  * $Id$
  *
@@ -21,6 +21,15 @@
 =============================================================================*/
 
 	require_once('../../config.php');
+	$dodel = 0;
+	if (!isset($date)) {
+		$date = "yesterday";
+		$dodel = 1;
+	}
+	if ($argc > 1) {
+		$date = $argv[1];
+		$dodel = 1;
+	}
 
 	$sec_dbsocket=sec_dbconnect();
 	$REMOTE_ID=sec_usernametoid($sec_dbsocket,'msyslog');
@@ -32,6 +41,14 @@
         $dbsocket= dbconnect(SMACDB,"msyslog",SMACPASS);
 	set_time_limit(0);
 
+	if ($dodel = 1) {
+		$SQLQuery = "delete from syslog_treview WHERE syslog_tsummary.date='$date' and syslog_treview.tsummary_id=syslog_tsummary.tsummary_id";
+		$SQLQueryResults = pg_exec($dbsocket,$SQLQuery) or
+			die(pg_errormessage()."<BR>\n");
+		$SQLQuery = "delete from syslog_tsummary where date='$date'";
+		$SQLQueryResults = pg_exec($dbsocket,$SQLQuery) or
+			die(pg_errormessage()."<BR>\n");
+	}
 	$SQLQuery="select thost_host from syslog_thost where do_logreport = 1";
 	$SQLQueryResults = pg_exec($dbsocket,$SQLQuery) or
 		die(pg_errormessage()."<BR>\n");
@@ -42,7 +59,7 @@
 				die(pg_errormessage()."<BR>\n");
 			$host=pgdatatrim($SQLQueryResultsObject->thost_host);
 			echo "Running Logwatch for $host\n";
-			echo system("/etc/log.d/bin/parselog.sh $host yesterday")."\n";
+			echo system("/etc/log.d/bin/parselog.sh $host $date")."\n";
                 }
         }
 	pg_freeresult($SQLQueryResults) or
@@ -50,4 +67,4 @@
 
 	dbdisconnect($sec_dbsocket);
 	dbdisconnect($dbsocket);
-%>
+?>
