@@ -3,6 +3,9 @@ require_once('calendar.php');
 require_once('config.php');
 $sec_dbsocket=sec_dbconnect();
 
+$logwindow =  3;
+
+
 $REMOTE_ID=sec_usernametoid($sec_dbsocket,$_SERVER['REMOTE_USER']);
 $APP_ID=sec_appnametoid($sec_dbsocket,'SyslogOp');
 if ( ! sec_accessallowed($sec_dbsocket,$REMOTE_ID,$APP_ID) ) {
@@ -100,7 +103,7 @@ if (!isset($view)) {
 			} else {
 				$myear2 = $myear;
 			}
-			$sql = "select date_part('day', date) as day, date_part('month', date) as month, log_reviewers, thost_id, tsummary_id from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$myear/$tmp2/01' and date < '$myear2/$tmp/01') order by date;";
+			$sql = "select date_part('epoch', date) as sqldate, log_reviewers, thost_id, tsummary_id from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$myear/$tmp2/01' and date < '$myear2/$tmp/01') order by date;";
 		        $SQLQueryResults = pg_exec($dbsocket,$sql) or
         		        die(pg_errormessage()."<BR>\n");
 		        $SQLNumRows = pg_numrows($SQLQueryResults);
@@ -113,13 +116,13 @@ if (!isset($view)) {
 				$sql2 = "select * from syslog_treview where tsummary_id = $tsid";
 				$SQLQueryResults2 = pg_exec($dbsocket, $sql2) or 
 					die(pg_errormessage()."<BR>");
+				$date = $SQLQueryResultsObject->sqldate;
+				$mymnt = date("m", $date);
+				$myday = date("j", $date);
 
 				if ( ( $group >= 2 ) || ( (logincanseehost($dbsocket,$REMOTE_ID,$host)) && $group == 1 ) ) {
-					$myday = $SQLQueryResultsObject->day;
-					$today = date('d', $time);
-					$mnt2 = date('m', time());
-					if (($tmp2 < $mnt2) || ($today - $myday > 2)) {
- 						if (pg_numrows($SQLQueryResults2) < $SQLQueryResultsObject->log_reviewers) {
+					if ((time() - $date) > (60*60*24*$logwindow)) {
+						if (pg_numrows($SQLQueryResults2) < $SQLQueryResultsObject->log_reviewers) {
 							$var = array("?".echo_datelink($myear, $tmp2, $myday), 'highlight-day');
 						} else {
 							$var = array("?".echo_datelink($myear, $tmp2, $myday), 'light-day');
@@ -127,7 +130,9 @@ if (!isset($view)) {
 					} else {
 						$var = array("?".echo_datelink($myear, $tmp2, $myday), 'linked-day');
 					}
-					$days[$myday] = $var;
+					if (!isset($days[$myday])) {
+						$days[$myday] = $var;
+					}
 				}
 	        	}
 		    	echo generate_calendar($myear, $tmp2, $days, 3);
