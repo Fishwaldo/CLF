@@ -59,6 +59,14 @@ while (defined($ThisLine = <STDIN>)) {
 	$ChkPDC++
    } elsif ($ThisLine =~ /^\(1085\)/ ) {
 	$RepFail++
+   } elsif ($ThisLine =~ /^\(1509\)/ ) {
+	$NT4Repask++
+   } elsif ($ThisLine =~ /^\(1510\)/ ) {
+	$NT4Repok++
+   } elsif ($ThisLine =~ /^\(1517\)/ ) {
+	$AskGroup++
+   } elsif ($ThisLine =~ /^\(1518\)/ ) {
+	$GetGroup++
 
    } elsif ($ThisLine =~ /^\(1363|1515|1516|1366|1488|1060|1068|1073|1364|1070|1072|1061\)/ ) {	  
 #   } elsif ($ThisLine =~ /^\(8528\): .*: The mailbox for (.*) has exceeded the maximum mailbox size/ ) {
@@ -96,6 +104,23 @@ if ($ChkPDC > 0) {
 if ($RepFail > 0) {
 	print "    The directory replication agent (DRA) couldn't synchronize partition $RepFail Times\n";
 }
+
+if ($NT4Repask > 0) {
+	print "    The Directory Service has been asked for replication information to support Windows NT 4.0 Domain Controllers $NT4Repask Times\n";
+}
+
+if ($NT4Repok > 0) {
+	print "    The Directory Service has processed the downlevel replication information request with NT $NT4Repok Times\n";
+}
+
+if ($AskGroup > 0) {
+	print "    The Directory Service has been asked to get group memberships $AskGroup Times\n";
+}
+
+if ($GetGroup > 0) {
+	print "    The Directory Service processed the get memberships $GetGroup Times\n";
+}
+
 
 printf "\n";
 if (keys %{$FullBox} and ($Detail >= 5)) {
