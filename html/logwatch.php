@@ -1,5 +1,4 @@
 <?
-
 require_once('calendar.php');
 require_once('config.php');
 $sec_dbsocket=sec_dbconnect();
@@ -21,13 +20,15 @@ if ( ! sec_accessallowed($sec_dbsocket,$REMOTE_ID,$APP_ID) ) {
 	$dbsocket= dbconnect(SMACDB,"msyslog",SMACPASS);
 
     	$time = time();
-	if (!isset($year)) {
+	if (!isset($_REQUEST["year"])) {
 		$year = date('Y', $time);
+	} else {
+		$year = $_REQUEST["year"];
 	}
-
-	if (!isset($month)) {
+	if (!isset($_REQUEST["month"])) {
 		$month = date('n', $time);
 	} else {
+		$month = $_REQUEST["month"];
 		if ($month == 0) {
 			$month = 12;
 			$year = $year -1;
@@ -36,6 +37,12 @@ if ( ! sec_accessallowed($sec_dbsocket,$REMOTE_ID,$APP_ID) ) {
 			$month = 1;
 			$year = $year +1;
 		}
+	}
+	if (isset($_REQUEST["view"])) {
+		$view = $_REQUEST["view"];
+	}
+	if (isset($_REQUEST["action"])) {
+		$action = $_REQUEST["action"];
 	}
 	do_header("Log Summary Reports", 'logwatch');
 
@@ -92,7 +99,7 @@ if (!isset($view)) {
 				$tmp = $tmp - 12;
 			}
 
-			$sql = "select date_part('day', date) as day, date_part('month', date) as month, * from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$myear/$tmp2/01' and date < '$myear2/$tmp/01') order by date;";
+			$sql = "select date_part('day', date) as day, date_part('month', date) as month, log_reviewers, thost_id, tsummary_id from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$myear/$tmp2/01' and date < '$myear2/$tmp/01') order by date;";
 		        $SQLQueryResults = pg_exec($dbsocket,$sql) or
         		        die(pg_errormessage()."<BR>\n");
 		        $SQLNumRows = pg_numrows($SQLQueryResults);
@@ -110,7 +117,7 @@ if (!isset($view)) {
 					$today = date('d', $time);
 					$mnt2 = date('m', time());
 					if (($tmp2 < $mnt2) || ($today - $myday > 2)) {
- 						if (@pg_numrows($SQLQueryResults2) < $SQLQueryResultsObject->log_reviewers) {
+ 						if (pg_numrows($SQLQueryResults2) < $SQLQueryResultsObject->log_reviewers) {
 							$var = array("?".echo_datelink($year, $tmp2, $myday), 'highlight-day');
 						} else {
 							$var = array("?".echo_datelink($year, $tmp2, $myday), 'light-day');
@@ -127,9 +134,10 @@ if (!isset($view)) {
 				echo "</tr>";
 			}
 	    	}
-	    if (isset($day)) {
+	    if (isset($_REQUEST["day"])) {
+		$day = $_REQUEST["day"];
 		$tmp2 = $month + 1;
-		$sql = "select date_part('day', date) as day, date_part('month', date) as month, * from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$year/$month/01' and date < '$year/$tmp2/01') order by date;";
+		$sql = "select date_part('day', date) as day, date_part('month', date) as month, thost_id, thost_host, tsummary_id, log_reviewers from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$year/$month/01' and date < '$year/$tmp2/01') order by date;";
 	        $SQLQueryResults = pg_exec($dbsocket,$sql) or
        		        die(pg_errormessage()."<BR>\n");
 	        $SQLNumRows = pg_numrows($SQLQueryResults);
@@ -157,11 +165,11 @@ if (!isset($view)) {
     if (isset($view)) {
 	if (isset($action)) {
 		if ($action == 'Complete Review') {
-			if ($donerev == 0) {
-				$sql = "insert into syslog_treview (reviewer, date, tsummary_id, comments) values ($REMOTE_ID, 'NOW()', $view, '$comment')";
+			if ($_REQUEST["donerev"] == 0) {
+				$sql = "insert into syslog_treview (reviewer, date, tsummary_id, comments) values ($REMOTE_ID, 'NOW()', $view, '".$_REQUEST["comment"]."')";
 				echo "<tr><td colspan=3 align=center><h2>Review Completed</h2></td></tr>";
 			} else {
-				$sql = "update syslog_treview set comments='$comment' where id=$donerev";
+				$sql = "update syslog_treview set comments='".$_REQUEST["comment"]."' where id=".$_REQUEST["donerev"];
 				echo "<tr><td colspan=3 align=center><h2>Review Updated</h2></td></tr>";
 			}
 
@@ -171,7 +179,7 @@ if (!isset($view)) {
 			echo "<tr><td colspan=3 align=center><h2>Review Aborted</h2></td></tr>";
 		}
 	}
-	$sql = "select * from syslog_tsummary ts, syslog_thost h where ts.tsummary_id = $view and ts.host=h.thost_host order by ts.date";
+	$sql = "select * from syslog_tsummary ts, syslog_thost h where ts.tsummary_id = $view and ts.host=h.thost_host";
         $SQLQueryResults = pg_exec($dbsocket,$sql) or
                 die(pg_errormessage()."<BR>\n");
         $SQLNumRows = pg_numrows($SQLQueryResults);
@@ -179,14 +187,14 @@ if (!isset($view)) {
 	        $SQLQueryResultsObject = pg_fetch_object($SQLQueryResults,0) or
                 	die(pg_errormessage()."<BR>\n");
 		$hostname = $SQLQueryResultsObject->thost_host;
-		$report = stripslashes(nl2br($SQLQueryResultsObject->data));
+		$report = nl2br(htmlspecialchars($SQLQueryResultsObject->data));
 		$date = $SQLQueryResultsObject->date;
 		$sql = "select * from syslog_treview where tsummary_id=$SQLQueryResultsObject->tsummary_id order by date";
 		$SQLQueryResults = pg_exec($dbsocket, $sql) or 
 			die(pg_errormessage()."<BR>");
 		$numrows = pg_numrows($SQLQueryResults);
 		$mycomment = "";
-		$donerev = 0;
+		$_REQUEST["donerev"] = 0;
 		if ($numrows > 0 ) {
 			echo "<tr><th>Reviewer</th><th>Comments</th><th>Date</th></tr>";
 		}
@@ -195,7 +203,7 @@ if (!isset($view)) {
 				die(pg_errormessage()."<BR>");
 			if ($SQLQueryResultsObject->reviewer == $REMOTE_ID) {
 				$mycomment = stripslashes($SQLQueryResultsObject->comments);
-				$donerev = $SQLQueryResultsObject->id;
+				$_REQUEST["donerev"] = $SQLQueryResultsObject->id;
 			}
 			$reviewer = sec_username($sec_dbsocket, $SQLQueryResultsObject->reviewer);
 			$comments = stripslashes(nl2br($SQLQueryResultsObject->comments));
@@ -209,9 +217,9 @@ if (!isset($view)) {
    	/* now the feedback form only to update or insert one comment per reviewer*/
 	echo "<tr><td colspan=2>";
 	openform("logwatch.php", "post", 0, 0, 0);
-	formfield("donerev", "hidden", 3, 1, 0, 200, 200, $donerev);
+	formfield("donerev", "hidden", 3, 1, 0, 200, 200, $_REQUEST["donerev"]);
 	formfield("view", "hidden", 3, 1, 0, 200, 200, $view);
-	if ($donerev > 0) {
+	if ($_REQUEST["donerev"] > 0) {
 		echo "Update ";
 	}
 	echo "Reviewer Comments:<br><textarea rows=10 cols=70 name=comment>$mycomment</textarea></td><td>";
@@ -231,5 +239,6 @@ if (!isset($view)) {
 ?>
 </td></tr></table>
 <?php
+
 do_footer();
 ?>
