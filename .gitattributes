@@ -376,6 +376,9 @@ msyslog-v1.08a+smac/src/peo/sha1.h -text
 msyslog-v1.08a+smac/src/peo/typedefs.h -text
 msyslog-v1.08a+smac/src/syslogd.c -text
 msyslog-v1.08a+smac/src/syslogd.h -text
+win32/CLFAgent-DLL/CLFAgent-DLL.vcproj -text
+win32/CLFAgent.sln -text
+win32/CLFAgent.vcproj -text
 win32/Makefile -text
 win32/check.c -text
 win32/dllmain.c -text

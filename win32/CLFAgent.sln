@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLFAgent", "CLFAgent.vcproj", "{F4626DC8-357C-468D-8736-20ABB797F5F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLFAgent-DLL", "CLFAgent-DLL\CLFAgent-DLL.vcproj", "{2A63411D-9FF6-490E-A92F-216F8506E0A4}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+		{F4626DC8-357C-468D-8736-20ABB797F5F3}.0 = {2A63411D-9FF6-490E-A92F-216F8506E0A4}
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{F4626DC8-357C-468D-8736-20ABB797F5F3}.Debug.ActiveCfg = Debug|Win32
+		{F4626DC8-357C-468D-8736-20ABB797F5F3}.Debug.Build.0 = Debug|Win32
+		{F4626DC8-357C-468D-8736-20ABB797F5F3}.Release.ActiveCfg = Release|Win32
+		{F4626DC8-357C-468D-8736-20ABB797F5F3}.Release.Build.0 = Release|Win32
+		{2A63411D-9FF6-490E-A92F-216F8506E0A4}.Debug.ActiveCfg = Debug|Win32
+		{2A63411D-9FF6-490E-A92F-216F8506E0A4}.Debug.Build.0 = Debug|Win32
+		{2A63411D-9FF6-490E-A92F-216F8506E0A4}.Release.ActiveCfg = Release|Win32
+		{2A63411D-9FF6-490E-A92F-216F8506E0A4}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
