@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+##########################################################################
+# $Id: cron,v 1.17 2004/06/21 15:07:21 kirk Exp $
+##########################################################################
+# $Log: cron,v $
+# Revision 1.17  2004/06/21 15:07:21  kirk
+# - Added check for large user mailboxes
+# - Added pop3 and imapd filters
+# - Updated clamav support
+# - New cisco log filter
+# - Tons of updates to existing filters (too many to list!)
+#
+# Revision 1.16  2004/06/21 14:59:05  kirk
+# Added tons of patches from Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+# Thanks, as always!
+#
+# Revision 1.15  2004/06/21 14:24:46  kirk
+# RH9 fix from Jindrich Kubec <kubecj@asw.cz
+#
+# Revision 1.14  2004/02/03 03:36:39  kirk
+# Patches from Anssi Kolehmainen <kolean-5.listat@pp.inet.fi>
+#
+# Revision 1.13  2004/02/03 02:45:26  kirk
+# Tons of patches, and new 'oidentd' and 'shaperd' filters from
+# Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+$Startups = 0;
+$Reloads = 0;
+$MailErrors = 0;
+
+while (defined($ThisLine = <STDIN>)) {
+   chomp($ThisLine);
+   if ($ThisLine =~ /^\(9543\)/ ) {
+	$ProxyError++
+#   } elsif ($ThisLine =~ /^\(562|565|673|674|672|677|676|515|577\)/ ) {	  
+   } elsif ($ThisLine =~ /^\(8528\): .*: The mailbox for (.*) has exceeded the maximum mailbox size/ ) {
+	$FullBox->{$1}++;	
+   } else {
+	push @OtherList, "$ThisLine\n";
+   }
+
+}
+
+#######################################
+
+if ($ProxyError > 0) {
+	print "    Unable to create Public Folder proxy object $ProxyError Times\n";
+}
+
+printf "\n";
+if (keys %{$FullBox} and ($Detail >= 5)) {
+   print "MailBox Full:\n";
+   foreach $i (sort {$a cmp $b} keys %{$FullBox}) {
+      print "   Username $i $FullBox->{$i} Time(s)\n";
+   }
+}
+
+#printf "\n";
+#if (keys %{$Privs} and ($Detail >= 5)) {
+#   print "Privledge Changes:\n";
+#   foreach $i (sort {$a cmp $b} keys %{$Privs}) {
+#      print "   Username $i:\n";
+#      foreach $j (sort {$a cmp $b} keys %{$Privs->{$i}}) {
+#         print "      Privledges: $j " . $Privs->{$i}->{$j} . " Time(s)\n";
+#      }
+##   }
+#}
+
+#if ($#PrivsList >= 0) {
+#   print "\n**Unmatched Privs Entries**\n";
+#   print @PrivsList;
+#}
+
+if ($#OtherList >= 0) {
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 et
+

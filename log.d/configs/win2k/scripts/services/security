@@ -1,0 +1,266 @@
+#!/usr/bin/perl
+##########################################################################
+# $Id: cron,v 1.17 2004/06/21 15:07:21 kirk Exp $
+##########################################################################
+# $Log: cron,v $
+# Revision 1.17  2004/06/21 15:07:21  kirk
+# - Added check for large user mailboxes
+# - Added pop3 and imapd filters
+# - Updated clamav support
+# - New cisco log filter
+# - Tons of updates to existing filters (too many to list!)
+#
+# Revision 1.16  2004/06/21 14:59:05  kirk
+# Added tons of patches from Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+# Thanks, as always!
+#
+# Revision 1.15  2004/06/21 14:24:46  kirk
+# RH9 fix from Jindrich Kubec <kubecj@asw.cz
+#
+# Revision 1.14  2004/02/03 03:36:39  kirk
+# Patches from Anssi Kolehmainen <kolean-5.listat@pp.inet.fi>
+#
+# Revision 1.13  2004/02/03 02:45:26  kirk
+# Tons of patches, and new 'oidentd' and 'shaperd' filters from
+# Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+$Startups = 0;
+$Reloads = 0;
+$MailErrors = 0;
+
+while (defined($ThisLine = <STDIN>)) {
+   chomp($ThisLine);
+   if ($ThisLine =~ /^\(1704\)/ ) {
+	$SecPolicyApplied++
+   } elsif ($ThisLine =~ /^\(562|565|673|674|672|677|676|515|577\)/ ) {	  
+
+#   } elsif ($ThisLine =~ /^\(537\)/ ) {
+#	   if ($ThisLine =~ /\(537\): (.*): Logon Failure: Reason: (.*) User Name: Domain: Logon Type: 3 Logon Process: Kerberos Authentication Package: Kerberos Workstation Name: -/ ) {
+#		$LogonFailure->{$1}->{$2}++;
+#	   } else {
+#	        push @LogonFailureList, "$ThisLine\n";
+#	   }
+   } elsif ($ThisLine =~ /^\(538\)/ ) {
+	   if ($ThisLine =~ /\(538\): (.*): User Logoff: User Name: .* Domain: .* Logon ID: /) {
+		$Logoff->{$1}++;
+	   } else {
+	        push @LogoffList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(576\)/ ) {
+	   if ($ThisLine =~ /Assigned: SeChangeNotifyPrivilege$/ ) {
+		# don't record just this priv, it happens to much 
+	   } elsif ($ThisLine =~ /\(576\): (.*): Special privileges assigned to new logon: User Name: .*Domain: .*Logon ID: .*Assigned: (.*)/ ) {
+		$Privs->{$1}->{$2}++;
+	   } else {
+	        push @PrivsList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(540|528\)/ ) {
+	   if ($ThisLine =~ /\(540\): .*: Successful Network Logon: User Name: (.*) Domain: .* Logon ID: .* Logon Type: .* Logon Process: .* Workstation Name: (.*) /) {
+		$Logon->{$1}->{$2}++;
+	   } elsif ($ThisLine =~ /\(540\): .*: Successful Network Logon: User Name: (.*) Domain: .* Logon ID: .* Logon Type: .* Logon Process: .* Workstation Name:/) {
+		$Logon->{$1}->{'Unknown'}++;
+	   } elsif ($ThisLine =~ /\(528\): .*: Successful Logon: User Name: (.*) Domain: .* Logon ID: .* Logon Type: .* Logon Process: .* Authentication Package: .* Workstation Name: (.*)/ ) {
+		$Logon->{$1}->{$2}++;
+	   } else {
+	        push @LogonList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(680\)/ ) {
+	   if ($ThisLine =~ /\(680\): NT AUTHORITY\\SYSTEM/ ) {
+		#ignore SYSTEM use, its very common 
+	   } elsif ($ThisLine =~ /\(680\): (.*): Account Used for Logon by: .* Account Name: (.*) Workstation: (.*)/ ) {
+		$Logonused->{$1}->{$2}->{$3}++;
+	   } else {
+	        push @LogonusedList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(675\)/ ) {
+	   if ($ThisLine =~ /\(675\): .*: Pre-authentication failed: User Name: (.*) User ID: .*Service Name: .*Pre-Authentication Type: .*Failure Code: .*Client Address: (.*)/ ) {
+		$PreAuthFailed->{$1}->{$2}++;
+	   } else {
+	        push @PreAuthFailed, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(578\)/ ) {
+	   if ($ThisLine =~ /\(578\): .*: Privileged object operation: Object Server: (.*)Object Handle: .*Process ID: .*Primary User Name: (.*)Primary Domain: .*Primary Logon ID: .*Client User Name: (.*) Client Domain: .*Client Logon ID: .*Privileges: (.*)/ ) {
+		$PrivUse->{$1}->{$2}->{$3}->{$4}++;
+	   } else {
+	        push @PrivUseList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(539|529|535|537|681\)/ ) {
+	   if ($ThisLine =~ /: .*: Logon Failure: Reason: (.*) User Name: (.*) Domain: .*Logon Type: .*Logon Process: .*Authentication Package: .*Workstation Name: (.*)/ ) {
+		$FailedLogin->{$2}->{$3}->{$1}++;
+	   } elsif ($ThisLine =~ /Logon Failure: Reason: An unexpected error occurred during logon User Name: Domain: Logon / ) { 
+		$FailedLogin->{'Unknown'}->{'Unknown'}->{'Unknown'}++;
+	   } elsif ($ThisLine =~ /\(681\): .*: The logon to account: (.*) by: .* from workstation: (.*) failed. The error code was: .*/ ) {
+		$FailedLogin->{$1}->{$2}->{"Unknown"}++;
+	   } else {
+	        push @FailedLoginList, "$ThisLine\n";
+	   }
+   } else {
+	push @OtherList, "$ThisLine\n";
+   }
+
+}
+
+#######################################
+
+if ($SecPolicyApplied > 0) {
+	print "    Group Security Policy Applied $SecPolicyApplied Times\n";
+}
+printf "\n";
+if (keys %{$LogonFailure} and ($Detail >= 5)) {
+   print "Logon Failures:\n";
+   foreach $i (sort {$a cmp $b} keys %{$LogonFailure}) {
+      print "   Username $i: ";
+      foreach $j (sort {$a cmp $b} keys %{$LogonFailure->{$i}}) {
+         print "      $j: " . $LogonFailure->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#LogonFailureList >= 0) {
+   print "\n**Unmatched Logon Failure Entries**\n";
+   print @LogonFailureList;
+}
+
+printf "\n";
+if (keys %{$Logoff} and ($Detail >= 5)) {
+   print "Domain LogOff's:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Logoff}) {
+      print "   Username $i: $Logoff->{$i}\n";
+   }
+}
+
+if ($#LogoffList >= 0) {
+   print "\n**Unmatched Logoff Entries**\n";
+   print @LogoffList;
+}
+
+printf "\n";
+if (keys %{$Logon} and ($Detail >= 5)) {
+   print "Domain Logon's:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Logon}) {
+      print "   Username $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$Logon->{$i}}) {
+         print "      Host: $j " . $Logon->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#LogonList >= 0) {
+   print "\n**Unmatched Logon Entries**\n";
+   print @LogonList;
+}
+
+printf "\n";
+if (keys %{$Privs} and ($Detail >= 5)) {
+   print "Privledge Changes:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Privs}) {
+      print "   Username $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$Privs->{$i}}) {
+         print "      Privledges: $j " . $Privs->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#PrivsList >= 0) {
+   print "\n**Unmatched Privs Entries**\n";
+   print @PrivsList;
+}
+
+printf "\n";
+if (keys %{$Logonused} and ($Detail >= 5)) {
+   print "Logon Impersonations:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Logonused}) {
+      print "   Account: $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$Logonused->{$i}}) {
+         print "      User: $j\n";
+	      foreach $k (sort {$a cmp $b} keys %{$Logonused->{$i}->{$j}}) {
+        	 print "      Workstation: $k " . $Logonused->{$i}->{$j}->{$k} . " Time(s)\n";
+	      }
+      }
+   }
+}
+
+if ($#LogonusedList >= 0) {
+   print "\n**Unmatched Logonused Entries**\n";
+   print @LogonusedList;
+}
+
+printf "\n";
+if (keys %{$PreAuthFailed} and ($Detail >= 5)) {
+   print "Pre-Authentication Failures:\n";
+   foreach $i (sort {$a cmp $b} keys %{$PreAuthFailed}) {
+      print "   Username $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$PreAuthFailed->{$i}}) {
+         print "      Host: $j " . $PreAuthFailed->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#PreAuthFailedList >= 0) {
+   print "\n**Unmatched PreAuthFailed Entries**\n";
+   print @PreAuthFailedList;
+}
+
+printf "\n";
+if (keys %{$PrivUse} and ($Detail >= 5)) {
+   print "Privledged Use:\n";
+   foreach $i (sort {$a cmp $b} keys %{$PrivUse}) {
+      print "   Object: $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$PrivUse->{$i}}) {
+         print "      Granting Account: $j\n";
+	      foreach $k (sort {$a cmp $b} keys %{$PrivUse->{$i}->{$j}}) {
+        	 print "      	Target Account: $k\n";
+		      foreach $l (sort {$a cmp $b} keys %{$PrivUse->{$i}->{$j}->{$k}}) {
+        		 print "      		Privledge: $l " . $PrivUse->{$i}->{$j}->{$k}->{$l} . " Time(s)\n";
+		      }
+	      }
+      }
+   }
+}
+
+if ($#PrivUseList >= 0) {
+   print "\n**Unmatched PrivUse Entries**\n";
+   print @PrivUseList;
+}
+
+printf "\n";
+if (keys %{$FailedLogin} and ($Detail >= 5)) {
+   print "Failed Login's:\n";
+   foreach $i (sort {$a cmp $b} keys %{$FailedLogin}) {
+      print "   Account: $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$FailedLogin->{$i}}) {
+         print "      Host: $j\n";
+	      foreach $k (sort {$a cmp $b} keys %{$FailedLogin->{$i}->{$j}}) {
+        	 print "      Reason: $k " . $FailedLogin->{$i}->{$j}->{$k} . " Time(s)\n";
+	      }
+      }
+   }
+}
+
+if ($#FailedLoginList >= 0) {
+   print "\n**Unmatched Failed Login Entries**\n";
+   print @FailedLoginList;
+}
+
+if ($#OtherList >= 0) {
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 et
+

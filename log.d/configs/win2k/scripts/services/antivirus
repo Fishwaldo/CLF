@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+##########################################################################
+# $Id: cron,v 1.17 2004/06/21 15:07:21 kirk Exp $
+##########################################################################
+# $Log: cron,v $
+# Revision 1.17  2004/06/21 15:07:21  kirk
+# - Added check for large user mailboxes
+# - Added pop3 and imapd filters
+# - Updated clamav support
+# - New cisco log filter
+# - Tons of updates to existing filters (too many to list!)
+#
+# Revision 1.16  2004/06/21 14:59:05  kirk
+# Added tons of patches from Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+# Thanks, as always!
+#
+# Revision 1.15  2004/06/21 14:24:46  kirk
+# RH9 fix from Jindrich Kubec <kubecj@asw.cz
+#
+# Revision 1.14  2004/02/03 03:36:39  kirk
+# Patches from Anssi Kolehmainen <kolean-5.listat@pp.inet.fi>
+#
+# Revision 1.13  2004/02/03 02:45:26  kirk
+# Tons of patches, and new 'oidentd' and 'shaperd' filters from
+# Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+$Startups = 0;
+$Reloads = 0;
+$MailErrors = 0;
+
+while (defined($ThisLine = <STDIN>)) {
+   chomp($ThisLine);
+   if ($ThisLine =~ /^\(16\)/ ) {
+	   if ($ThisLine =~ /no new Virus Definitions available/ ) {
+		$NoUpdate++;
+	   } elsif ($ThisLine =~ /successfully downloaded Virus Definitions/ ) {
+		$GotUpdate++;
+	   } elsif ($ThisLine =~ /irus definitions are current/ ) {
+	   } else {
+		push @UpdateList, "$ThisLine\n";
+	   }	
+   } elsif ($ThisLine =~ /^\(7\)/ ) {
+	   if ($ThisLine =~ /New virus definition file loaded. Version:(.*)/ ) {
+		$Update->{$1}->{'New Dat File Loaded'}++;
+	   } else {
+	        push @UpdateList, "$ThisLine\n";
+	   }
+   } elsif ($ThisLine =~ /^\(4\)/ ) {
+	   if ($ThisLine =~ /Update to computer (.*) of virus definition file ([^ ]+) failed. Status/ ) {
+		$WKUpdate->{$1}->{$2}++;
+	   } else {
+	        push @WKUpdateList, "$ThisLine\n";
+	   }
+   } else {
+	push @OtherList, "$ThisLine\n";
+   }
+
+}
+
+#######################################
+
+print "NAV Dat File Updates:\n";
+print "---------------------\n";
+if ($NoUpdate > 0) {
+	print "    NAV Checked For new updates $NoUpdate Times\n"
+}
+if ($GotUpdate > 0) {
+        print "    Nav Downloaded New Datfiles $GotUpdate Times\n"
+}
+
+if (keys %{$Update} and ($Detail >= 5)) {
+   print "Dat Files Downloaded:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Update}) {
+      print "   Dat $i: ";
+      foreach $j (sort {$a cmp $b} keys %{$Update->{$i}}) {
+         print "      " . $Update->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#UpdateList >= 0) {
+   print "\n**Unmatched Dat Entries**\n";
+   print @UpdateList;
+}
+
+print "\n\n";
+print "Workstation Update Failures:\n";
+print "----------------------------\n";
+
+if (keys %{$WKUpdate} and ($Detail >= 5)) {
+   print "WorkStation Update Failures:\n";
+   foreach $i (sort {$a cmp $b} keys %{$WKUpdate}) {
+      print "   WorkStation $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$WKUpdate->{$i}}) {
+        	 print "      Dat Version: $j  " . $WKUpdate->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($#WKUpdateList >= 0) {
+   print "\n**Unmatched Workstation Entries**\n";
+   print @WKUpdateList;
+}
+
+
+if ($#OtherList >= 0) {
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 et
+

@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+##########################################################################
+# $Id: removeheaders,v 1.9 2004/06/21 14:18:57 kirk Exp $
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+#
+########################################################
+
+# Removes the beginning of each line of a standard /var/log/messages-style
+# logfile.
+
+while (defined($ThisLine = <STDIN>)) {
+    #First line is Solaris ID tag style -mgt
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]*\[[0123456789]*\]: \[ID [0-9]+ [[:alpha:]]+\.[[:alpha:]]+\] //;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]*: \[ID [0-9]+ [[:alpha:]]+\.[[:alpha:]]+\] //;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]*\[[0123456789]*\]: \[ID [0-9]+\]//;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]*\[[0123456789]*\]: //;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]*: //;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]* [^ ]* \(([01234567890]*)\)/\($2\)/;
+    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) [^ ]* \(([01234567890]*)\)/\($2\)/;
+    print $ThisLine;
+}
+
