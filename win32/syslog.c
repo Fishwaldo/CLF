@@ -63,7 +63,6 @@ int SyslogSend(char * message, int level)
 
 	/* Write priority level */
 	_snprintf(error_message, sizeof(error_message), "<%d>%s", level, message);
-
 	/* Send result to syslog server */
 	return WSockSend(error_message);
 }

@@ -70,7 +70,7 @@ int ServiceInstall()
 	}
 
 	/* Create a new service */
-	new_service = CreateService(service_manager, "CLFAgent", "CSC CLF Agent", SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_IGNORE, "%SystemRoot%\\System32\\evtsys.exe", NULL, NULL, "eventlog\0", NULL, NULL);
+	new_service = CreateService(service_manager, "CLFAgent", "CSC CLF Agent", SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_IGNORE, "%SystemRoot%\\System32\\clfagent.exe", NULL, NULL, "eventlog\0", NULL, NULL);
 	if (new_service == NULL)
 		Log(LOG_ERROR|LOG_SYS, "Cannot create service");
 	else
@@ -146,6 +146,9 @@ static void WINAPI ServiceChange(DWORD code)
 /* Process main loop */
 static void WINAPI ServiceMain(DWORD argc, LPTSTR * argv)
 {
+
+	Log(LOG_INFO|LOG_SYS, "CLFAgent Started As a Service");
+
 	/* Register a control function to the service manager */
 	ServiceStatusHandle = RegisterServiceCtrlHandler("CLFAgent", ServiceChange);
 	if (ServiceStatusHandle == 0) {
@@ -171,6 +174,8 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR * argv)
 
 	/* Send stop message */
 	ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+
+	Log(LOG_INFO|LOG_SYS, "CLFAgent Stopped As a Service");
 
 	/* Report status */
 	if (SetServiceStatus(ServiceStatusHandle, &ServiceStatus) == FALSE) {

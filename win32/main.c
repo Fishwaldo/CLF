@@ -35,6 +35,7 @@
 */
 
 /* Include files */
+#include <signal.h>
 #include "main.h"
 #include "eventlog.h"
 #include "log.h"
@@ -50,6 +51,14 @@ static BOOL ProgramUninstall = FALSE;
 static char * ProgramName;
 static char * ProgramSyslogLogHost = NULL;
 static char * ProgramSyslogPort = NULL;
+
+static int GoingDown(int ok) {
+	SyslogSend("Centralized Logging Agent Service Stopped", SYSLOG_BUILD(SYSLOG_DAEMON, SYSLOG_WARNING));
+	Log(LOG_INFO|LOG_SYS, "Centralized Logging Agent Service Stopped");
+	exit(3);
+	return 0;
+}
+
 
 /* Operate on program flags */
 static int mainOperateFlags()
@@ -86,6 +95,9 @@ static int mainOperateFlags()
 		return status;
 	}
 
+	signal(SIGINT, GoingDown);
+	signal(SIGSEGV, GoingDown);
+	signal(SIGTERM, GoingDown);
 	/* Load the current registry keys */
 	if (RegistryRead())
 		return 1;
@@ -121,10 +133,8 @@ static void mainUsage()
 		fputc('\n', stderr);
 		fprintf(stderr, "Default port: %u\n", SYSLOG_DEF_PORT);
 		fputs("Host (-h) required if installing.\n", stderr);
-		Sleep(10000);
 	} else {
 		Log(LOG_ERROR, "Invalid flag usage; Check startup parameters");
-		Sleep(10000);
 	}
 }
 
@@ -147,7 +157,6 @@ static int mainProcessFlags(int argc, char ** argv)
 			break;
 		case 'h':
 			ProgramSyslogLogHost = GetOptArg;
-			printf("%s\n", ProgramSyslogLogHost);
 			break;
 		case 'p':
 			ProgramSyslogPort = GetOptArg;

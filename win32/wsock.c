@@ -88,18 +88,24 @@ void WSockStop()
 /* Open connection to syslog */
 int WSockOpen(unsigned long ip, unsigned short port)
 {
+	int ret;
 	/* Initialize remote address structure */
 	WSockAddress.sin_family = AF_INET;
 	WSockAddress.sin_port = htons(port);
 	WSockAddress.sin_addr.s_addr = ip;
 
 	/* Create socket */
-	WSockSocket = socket(AF_INET, SOCK_DGRAM, 0);
+	WSockSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (WSockSocket == INVALID_SOCKET) {
 		Log(LOG_ERROR|LOG_SYS, "Cannot create a datagram socket");
 		return 1;
 	}
-
+	ret = connect (WSockSocket, (struct sockaddr *) &WSockAddress, sizeof (WSockAddress));
+	if (ret<0) {
+		Log(LOG_ERROR|LOG_SYS, "Winsock Error: %d", WSAGetLastError());
+		WSockClose();
+		return 1;
+	}
 	/* Success */
 	return 0;
 }
@@ -117,7 +123,7 @@ void WSockClose()
 /* Send data to syslog */
 int WSockSend(char * message)
 {
-	int len;
+	size_t len;
 
 	/* Get message length */
 	len = strlen(message);

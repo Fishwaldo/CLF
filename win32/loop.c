@@ -57,7 +57,7 @@ int MainLoop()
 		return 1;
 
 	/* Service is now running */
-	Log(LOG_INFO, "Centralized Logging Agent Service Started: Version 1.0");
+	Log(LOG_INFO|LOG_SYS, "Centralized Logging Agent Service Started: Version 1.0");
 
 	/* Loop while service is running */
 	do {
@@ -79,8 +79,8 @@ int MainLoop()
 	} while (ServiceIsRunning);
 
 	/* Service is stopped */
-	Log(LOG_INFO, "Centralized Logging Agent Service Stopped");
-
+	Log(LOG_INFO|LOG_SYS, "Centralized Logging Agent Service Stopped");
+	SyslogSend("Centralized Logging Agent Service Stopped", SYSLOG_BUILD(SYSLOG_DAEMON, SYSLOG_WARNING));
 	/* Close eventlogs */
 	EventlogsClose();
 

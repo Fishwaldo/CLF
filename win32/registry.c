@@ -52,7 +52,7 @@ struct RegistryData {
 };
 
 /* Location of application data in registry tree */
-static char RegistryApplicationDataPath[] = "Software\\ECN\\EvtSys\\3.0";
+static char RegistryApplicationDataPath[] = "Software\\CSC\\CLFAgent\\1.1";
 
 /* List of application data */
 static struct RegistryData RegistryApplicationDataList[] = {
@@ -61,10 +61,10 @@ static struct RegistryData RegistryApplicationDataList[] = {
 };
 
 /* Location of eventlog data in registry tree */
-static char RegistryEventlogDataPath[] = "System\\CurrentControlSet\\Services\\EventLog\\Application\\EvtSys";
+static char RegistryEventlogDataPath[] = "System\\CurrentControlSet\\Services\\EventLog\\Application\\CLFAgent";
 
 /* List of eventlog data */
-static char RegistryEventlogFile[] = "%SystemRoot%\\System32\\evtsys.dll";
+static char RegistryEventlogFile[] = "%SystemRoot%\\System32\\CLFAgent.dll";
 static DWORD RegistryEventlogTypes = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE;
 
 static struct RegistryData RegistrEventlogDataList[] = {
@@ -92,10 +92,10 @@ static int RegistryCreate(char * path, struct RegistryData * list, int count)
 		NULL,
 		&registry_handle,
 		&disposition)) {
-		Log(LOG_ERROR|LOG_SYS, "Cannot initialize access to registry: \"%s\"", path);
+		Log(LOG_ERROR|LOG_SYS, "Cannot initialize access to registry: \"%s\" %d", path, WSAGetLastError());
 		return 1;
 	}
-
+	
 	/* Check for existing */
 	if (disposition == REG_OPENED_EXISTING_KEY)
 		Log(LOG_WARNING, "Replacing existing keys: \"%s\"", path);
