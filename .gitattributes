@@ -1,4 +1,17 @@
 * text=auto !eol
+CLFClient/AssemblyInfo.vb -text
+CLFClient/CLFClient.sln -text
+CLFClient/CLFClient.vbproj -text
+CLFClient/Listener/Listener.resx -text
+CLFClient/Listener/Listener.vb -text
+CLFClient/Listener/Listener.vbproj -text
+CLFClient/LogMain.resx -text
+CLFClient/LogMain.vb -text
+CLFClient/loginform.resx -text
+CLFClient/loginform.vb -text
+CLFClient/main.resx -text
+CLFClient/main.vb -text
+CLFClient/maincode.vb -text
 html/.htaccess -text
 html/1stalertview.php -text
 html/1stcustomer.php -text
