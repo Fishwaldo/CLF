@@ -1,4 +1,4 @@
-#!/opt/bin/php
+#!/usr/bin/php
 <%
 /*=============================================================================
  * $Id$
@@ -23,7 +23,7 @@
 	require_once('../../config.php');
 
 	$sec_dbsocket=sec_dbconnect();
-	$REMOTE_ID=sec_usernametoid($sec_dbsocket,$REMOTE_USER);
+	$REMOTE_ID=sec_usernametoid($sec_dbsocket,'msyslog');
 	$GROUP_ID=sec_groupnametoid($sec_dbsocket,'Syslog msyslog');
 	if ( ! sec_groupmember($sec_dbsocket,$REMOTE_ID,$GROUP_ID) ) {
 		dbdisconnect($sec_dbsocket);
@@ -39,9 +39,75 @@
 		dbdisconnect($sec_dbsocket);
 		exit;
 	}
-
+	$myflock = fopen($lockfile, "w+");
+	if (!flock($myflock, LOCK_EX|LOCK_NB)) {
+		echo "Locked Processor.\n";
+		if ((time() - filemtime($lockfile)) > ($locktime * 60 * 60)) {
+			mail(WARNINGADDRESS,"SMT WARNING:  Locked Processor","SMT Processor:  $REMOTE_ID\nThe SMT system processor has been locked for longer than $locktime hours.\nThis could be caused by one of three things:\n1.  Regularlary scheduled maintenance is keeping the database busy afterwhich you should not longer see this warning.\n2.  The log processor crashed and will require manual fixing. (check if processlogs.php is running, if not delete /tmp/processor.lock\n3.  The overall load of the box is too great and may need to be resized.\n\nPlease see the appropriate support documentation to help determine which of these three it is.\n\nSincerely, SMT-Auto Message");
+		}
+		dbdisconnect($dbsocket);
+		dbdisconnect($sec_dbsocket);
+		exit;
+	}
 	if ( ($testmailid = ismailopen($dbsocket,$REMOTE_ID)) ) {
 		echo "Found what appears to be a stale connection.\n";
+		if (0) {
+			cleanemail($dbsocket,$testmailid);
+			clearlaunchqueue($dbsocket,$testmailid);
+			closeopenmail($dbsocket,$testmailid);
+			exit;
+		}
+		$begintime = time();
+		$maildate=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_TMail","TMail_Date","TMail_ID=$testmailid")));
+		$mailtime=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_TMail","TMail_Time","TMail_ID=$testmailid")));
+		$SQLQuery="select distinct TProcess_ID,Syslog_TProcess.THost_ID from Syslog_TProcess,Syslog_TProcessorProfile where ( ( Syslog_TProcessorProfile.TLogin_ID=$REMOTE_ID ) and ( Syslog_TProcessorProfile.THost_ID=Syslog_TProcessorProfile.THost_ID) )";
+		$SQLQueryResults = pg_exec($dbsocket,$SQLQuery) or
+			die(pg_errormessage()."\n");
+		$SQLNumRows = pg_numrows($SQLQueryResults);
+		echo "Got $SQLNumRows to check\n";
+		$PurgeQuery="Begin ; ";
+		$mcount = 0;
+		if ( $SQLNumRows ) {
+			for ( $loop = 0 ; $loop != $SQLNumRows ; $loop++ ) {
+				$SQLQueryResultsObject = pg_fetch_object($SQLQueryResults,$loop) or
+					die(pg_errormessage()."\n");
+				$cleanid=stripslashes(pgdatatrim($SQLQueryResultsObject->tprocess_id));
+				$cleanhost=gethost($dbsocket,stripslashes(pgdatatrim($SQLQueryResultsObject->thost_id)));
+				$PurgeQuery="Begin ; ";
+				$PurgeQuery = $PurgeQuery . "delete from Syslog_TAlert where Syslog_TAlert.TSyslog_ID=TSyslog.TSyslog_ID and TSyslog.TSyslog_ID > $cleanid and TSyslog.host='$cleanhost' ; ";
+				$PurgeQuery = $PurgeQuery . "delete from Syslog_TArchive where TSyslog_ID > $cleanid and host='$cleanhost' ; ";
+				$PurgeQuery = $PurgeQuery . "commit ; ";
+				$PurgeSQLQueryResults = pg_exec($dbsocket,$PurgeQuery) or
+                                      	die(pg_errormessage()."\n");
+				$count = pg_affected_rows($PurgeSQLQueryResults);
+				$mcount = $mcount + $count;
+				echo "Cleaned $cleanhost of $count records\n";
+			}
+		}
+		$endtime=time();
+		if ( ($endtime - $begintime) != 0 ) { 
+	        	echo "Data Cleaned in " . ($endtime - $begintime) . " seconds.  " . ( $mcount / ($endtime - $begintime) ) . " rows/sec\n";
+		} else {
+			echo "Data loaded in 0 seconds.  Cleaned $mcount.\n";
+		}
+
+		pg_freeresult($SQLQueryResults) or
+			die(pg_errormessage() . "\n");
+		cleanemail($dbsocket,$testmailid);
+		clearlaunchqueue($dbsocket,$testmailid);
+		closeopenmail($dbsocket,$testmailid);
+		if ( $PurgeSQLQueryResults ) {
+			echo "SUCCESS!!\n";
+			$ok = 1;
+			pg_freeresult($PurgeSQLQueryResults) or
+				die(pg_errormessage() . "\n");
+		} else {
+			echo "FAILED!!\n";
+			$ok = 2;
+			pg_freeresult($PurgeSQLQueryResults) or
+				die(pg_errormessage() . "\n");
+		}
+
 		$maildate=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_TMail","TMail_Date","TMail_ID=$testmailid")));
 		$mailtime=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_TMail","TMail_Time","TMail_ID=$testmailid")));
 		$testhour=substr($mailtime,0,2);
@@ -53,10 +119,17 @@
 		$mailunixtime=mktime($testhour,$testminute,$testsecond,$testmonth,$testday,$testyear);
 		$currentunixtime=time();
 		if ( ( $currentunixtime - $mailunixtime ) > 3600 ) {
-			mail(WARNINGADDRESS,"SMT WARNING:  Stale or Overrun Processor","SMT Processor:  $REMOTE_ID\nThe SMT system cannot process logs at the moment.\nThis could be caused by one of three things:\n1.  Regularlary scheduled maintenance is keeping the database busy afterwhich you should not longer see this warning.\n2.  The log processor crashed and will require manual fixing.\n3.  The overall load of the box is too great and may need to be resized.\n\nPlease see the appropriate support documentation to help determine which of these three it is.\n\nSincerely, SMT-Auto Message");
+			if ($ok = 1) {
+				mail(WARNINGADDRESS,"SMT WARNING:  Stale or Overrun Processor cleaned","SMT Processor:  $REMOTE_ID\nThe SMT system ran autorecovery.\nThis could be caused by one of three things:\n1.  Regularlary scheduled maintenance is keeping the database busy afterwhich you should not longer see this warning.\n2.  The log processor crashed and will require manual fixing.\n3.  The overall load of the box is too great and may need to be resized.\n\nPlease see the appropriate support documentation to help determine which of these three it is.\n\nSincerely, SMT-Auto Message");
+			} else {
+				mail(WARNINGADDRESS,"SMT ERROR:  Stale or Overrun Processor","SMT Processor:  $REMOTE_ID\nThe SMT system cannot process logs at the moment.\nThis could be caused by one of three things:\n1.  Regularlary scheduled maintenance is keeping the database busy afterwhich you should not longer see this warning.\n2.  The log processor crashed and will require manual fixing.\n3.  The overall load of the box is too great and may need to be resized.\n\nPlease see the appropriate support documentation to help determine which of these three it is.\n\nSincerely, SMT-Auto Message");
+			}
 		}
 		dbdisconnect($dbsocket);
 		dbdisconnect($sec_dbsocket);
+		flock($myflock, LOCK_UN);
+		fclose($myflock);
+		unlink("/tmp/processor.lock");
 		exit;
 	} else {
 		echo "No stale data, proceeding.\n";
@@ -182,7 +255,7 @@
 		", TSyslog.severity, TSyslog.facility from TSyslog,syslog_thost,Syslog_TProcess,Syslog_TProcessorProfile where ( " . 
 		"( TSyslog_ID > Syslog_TProcess.TProcess_ID ) and ( Syslog_TProcess.THost_ID = Syslog_THost.THost_ID ) and " . 
 		"( Syslog_THost.THost_Host = TSyslog.host ) and ( Syslog_TProcessorProfile.TLogin_ID=$REMOTE_ID ) and " . 
-		" ( TSyslog.host = Syslog_THost.THost_Host ) and ( Syslog_TProcessorProfile.THost_ID = Syslog_THost.THost_ID ) ) order by host, TSyslog_ID"; 
+		" ( TSyslog.host = Syslog_THost.THost_Host ) and ( Syslog_TProcessorProfile.THost_ID = Syslog_THost.THost_ID ) ) order by host, TSyslog_ID limit $SQLLIMIT"; 
 	echo "SQL Query:  $SQLQuery<BR>\n";
 	echo "Grabbing Syslog data...";
 
@@ -199,7 +272,11 @@
 			die(pg_errormessage() . "\n");
 		dbdisconnect($dbsocket);
 		dbdisconnect($sec_dbsocket);
+		flock($myflock, LOCK_UN);
+		fclose($myflock);
+		unlink("/tmp/processor.lock");
 		exit;
+
 	}
 	echo "Done.\n  Found $SQLNumRows rows.\n";
        
@@ -561,4 +638,7 @@
 
 	dbdisconnect($dbsocket);
 	dbdisconnect($sec_dbsocket);
+	flock($myflock, LOCK_UN);
+	fclose($myflock);
+	unlink("/tmp/processor.lock");
 %>

@@ -93,12 +93,13 @@ if (!isset($view)) {
 				$myear = $myear +1;
 				$tmp2 = $tmp2 - 12;
 			}
-			$myear2 = $myear;
 			$tmp = $tmp2 + 1;
 			if ($tmp > 12) {
 				$tmp = $tmp - 12;
+				$myear2 = $myear + 1;
+			} else {
+				$myear2 = $myear;
 			}
-
 			$sql = "select date_part('day', date) as day, date_part('month', date) as month, log_reviewers, thost_id, tsummary_id from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$myear/$tmp2/01' and date < '$myear2/$tmp/01') order by date;";
 		        $SQLQueryResults = pg_exec($dbsocket,$sql) or
         		        die(pg_errormessage()."<BR>\n");
@@ -112,18 +113,19 @@ if (!isset($view)) {
 				$sql2 = "select * from syslog_treview where tsummary_id = $tsid";
 				$SQLQueryResults2 = pg_exec($dbsocket, $sql2) or 
 					die(pg_errormessage()."<BR>");
+
 				if ( ( $group >= 2 ) || ( (logincanseehost($dbsocket,$REMOTE_ID,$host)) && $group == 1 ) ) {
 					$myday = $SQLQueryResultsObject->day;
 					$today = date('d', $time);
 					$mnt2 = date('m', time());
 					if (($tmp2 < $mnt2) || ($today - $myday > 2)) {
  						if (pg_numrows($SQLQueryResults2) < $SQLQueryResultsObject->log_reviewers) {
-							$var = array("?".echo_datelink($year, $tmp2, $myday), 'highlight-day');
+							$var = array("?".echo_datelink($myear, $tmp2, $myday), 'highlight-day');
 						} else {
-							$var = array("?".echo_datelink($year, $tmp2, $myday), 'light-day');
+							$var = array("?".echo_datelink($myear, $tmp2, $myday), 'light-day');
 						}
 					} else {
-						$var = array("?".echo_datelink($year, $tmp2, $myday), 'linked-day');
+						$var = array("?".echo_datelink($myear, $tmp2, $myday), 'linked-day');
 					}
 					$days[$myday] = $var;
 				}
@@ -137,7 +139,7 @@ if (!isset($view)) {
 	    if (isset($_REQUEST["day"])) {
 		$day = $_REQUEST["day"];
 		$tmp2 = $month + 1;
-		$sql = "select date_part('day', date) as day, date_part('month', date) as month, thost_id, thost_host, tsummary_id, log_reviewers from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date >= '$year/$month/01' and date < '$year/$tmp2/01') order by date;";
+		$sql = "select date_part('day', date) as day, date_part('month', date) as month, thost_id, thost_host, tsummary_id, log_reviewers from syslog_tsummary lw, syslog_thost h where lw.host = h.thost_host and (date = '$year/$month/$day') order by date;";
 	        $SQLQueryResults = pg_exec($dbsocket,$sql) or
        		        die(pg_errormessage()."<BR>\n");
 	        $SQLNumRows = pg_numrows($SQLQueryResults);

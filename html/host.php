@@ -63,12 +63,12 @@
 	}
 
 	if ( ( $hostadd ) && ( $host != "" ) ) {
-		addhost($dbsocket,$host,$syslogexpire,$alertexpire,$typeid,$hostrate);
+ 		addhost($dbsocket,$host,$syslogexpire,$alertexpire,$typeid,$hostrate,$dologrep,$revreq);
 		$hostid = stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_THost","THost_ID","THost_Host='$host'")));
 		addhostprocess($dbsocket,$hostid);
 	} 
 	if ( ( $hostmod ) && ( isset($hostid) ) && ( $host != "" ) ) {
-		updatehost($dbsocket,$hostid,$host,$syslogexpire,$alertexpire,$typeid,$hostrate);
+		updatehost($dbsocket,$hostid,$host,$syslogexpire,$alertexpire,$typeid,$hostrate,$dologrep,$revreq);
 	}
 
 	$PageTitle="Syslog Management Tool";
@@ -79,6 +79,8 @@
 		$alertexpire=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_THost","THost_AlertExpire","THost_ID=$hostid")));
 		$typeid=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_THost","TPremadeType_ID","THost_ID=$hostid")));
 		$hostrate=stripslashes(pgdatatrim(relatedata($dbsocket,"Syslog_THost","THost_Rate","THost_ID=$hostid")));
+		$logrep=stripslashes(pgdatatrim(relatedata($dbsocket, "Syslog_THost", "do_logreport", "THost_ID=$hostid")));
+		$logrev=stripslashes(pgdatatrim(relatedata($dbsocket, "Syslog_THost", "log_reviewers", "THost_ID=$hostid")));
 		if ( $hostid == 0 ) {
 			dbdisconnect($sec_dbsocket);
 			dbdisconnect($dbsocket);
@@ -112,6 +114,14 @@
 		if ( strval($hostid) > 0 ) { 
 			echo "<input type='checkbox' name='rensyslogs' value='1'>Rename Syslogs<BR>\n";
 		}
+		echo "<input type='checkbox' name='dologrep' value=1";
+		if ($logrep == 1) {
+			echo " checked";
+		}
+		echo ">Generate LogWatch Reports<br>\n";
+		echo "Reviews Required:";
+		formfield("revreq", "text", 2, 1,1,2,2,$logrev);
+		echo "<br>";
 		formsubmit("Save",3,1,0);
 		formreset("Reset",3,1,0);
 		closeform();

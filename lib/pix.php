@@ -32,7 +32,7 @@ require_once('pgsql.php');
 /********************************************************************/
 define("SMACDB", "TSyslog");			/* Username used to access the DB */
 define("SMACPASS", "N88iqueU");
-define("WARNINGADDRESS", "root@localhost"); /* Email address that SMT uses as the target to get warnings and misc. reports */
+define("WARNINGADDRESS", "cscgiss1@maybank.com.sg"); /* Email address that SMT uses as the target to get warnings and misc. reports */
 define("SMTVER","1.00");			/* The version of the software that the user sees */
 define("LEFTWIDTH","150");			/* Control the width of the left panel called by index.php */
 
@@ -2312,15 +2312,20 @@ function addhostprocess($dbsocket,$hostid) {
 /*               given THost_ID                                     */
 /*                                                                  */
 /********************************************************************/
-function addhost($dbsocket,$host,$syslogexpire,$alertexpire,$typeid,$hostrate) {
+function
+addhost($dbsocket,$host,$syslogexpire,$alertexpire,$typeid,$hostrate,$dologrep,$revreq) {
 
 	$Results=0;
 	$host=fixappostrophe(stripslashes(pgdatatrim($host)));
 	$syslogexpire=fixappostrophe(stripslashes(pgdatatrim($syslogexpire)));
 	$alertexpire=fixappostrophe(stripslashes(pgdatatrim($alertexpire)));
 	$typeid=fixappostrophe(stripslashes(pgdatatrim($typeid)));
+	if ($dologrep != 1) {
+		$dologrep = 0;
+		$revreq = 0;
+	}
 	if ( $hostrate < 100 ) { $hostrate = 100; }
-	$SQLQuery="begin;insert into Syslog_THost (THost_Host,THost_AlertExpire,THost_LogExpire,TPremadeType_ID,THost_Rate) values ('$host',$alertexpire,$syslogexpire,$typeid,$hostrate);commit;";
+	$SQLQuery="begin;insert into Syslog_THost (THost_Host,THost_AlertExpire,THost_LogExpire,TPremadeType_ID,THost_Rate, do_logreport, log_reviewers) values ('$host',$alertexpire,$syslogexpire,$typeid,$hostrate,$dologrep,$revreq);commit;";
 	$SQLQueryResults=pg_exec($dbsocket,$SQLQuery) or
 		die(pg_errormessage()."<BR>\n");
 	if ( $SQLQueryResults ) { $Results=1; }
@@ -2337,15 +2342,20 @@ function addhost($dbsocket,$host,$syslogexpire,$alertexpire,$typeid,$hostrate) {
 /*               given THost_ID                                     */
 /*                                                                  */
 /********************************************************************/
-function updatehost($dbsocket,$hostid,$host,$syslogexpire=0,$alertexpire=0,$typeid,$hostrate) {
+function
+updatehost($dbsocket,$hostid,$host,$syslogexpire=0,$alertexpire=0,$typeid,$hostrate,$dologrep,$revreq) {
 
 	$Results=0;
 	$host=fixappostrophe(stripslashes(pgdatatrim($host)));
 	$syslogexpire=fixappostrophe(stripslashes(pgdatatrim($syslogexpire)));
 	$alertexpire=fixappostrophe(stripslashes(pgdatatrim($alertexpire)));
 	$typeid=fixappostrophe(stripslashes(pgdatatrim($typeid)));
+	if ( $dologrep != 1) {
+		$dologrep = 0;
+		$revreq = 0;
+	}
 	if ( $hostrate < 100 ) { $hostrate = 100; }
-	$SQLQuery="begin;update Syslog_THost set THost_Host='$host',THost_AlertExpire=$alertexpire,THost_LogExpire=$syslogexpire,TPremadeType_ID=$typeid,THost_Rate=$hostrate where THost_ID=$hostid;commit;";
+	$SQLQuery="begin;update Syslog_THost set THost_Host='$host',THost_AlertExpire=$alertexpire,THost_LogExpire=$syslogexpire,TPremadeType_ID=$typeid,THost_Rate=$hostrate,do_logreport=$dologrep,log_reviewers=$revreq where THost_ID=$hostid;commit;";
 	$SQLQueryResults=pg_exec($dbsocket,$SQLQuery) or
 		die(pg_errormessage()."<BR>\n");
 	if ( $SQLQueryResults ) { $Results=1; }

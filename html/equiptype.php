@@ -86,10 +86,25 @@
 	openform("equiptype.php","post",2,1,0);
 	echo "<B>Equipment Type</B><BR>\n";
 	if ( $subaction != 3 ) {
+
 		echo "1.  Enter Equipment Type:  ";
 		formfield("typedesc","text",3,1,1,40,40,$typedesc);
 		echo "2.  Enter Logwatch Command Line:  ";
-		formfield("logwatch","text",3,1,1,40,40,$logwatch);
+		echo "<select name=\"logwatch\"><option>Unselected</option>";
+		$handle=opendir($logwatchreports);
+		while ($file = readdir($handle)) {
+			if ($file == ".." || $file == ".") {
+				continue;
+			}
+			if(is_dir($logwatchreports."/".$file)) {
+				echo "<option value=\"$file\"";
+				if ($logwatch == $file) {
+					echo " selected";
+				}
+				echo ">$file</option>";
+			}
+		}
+		echo "</select><br>";
 		formsubmit("Save",3,1,0);
 		formfield("subaction","hidden",3,1,0,200,200,$subaction);
 		if ( $typeid != "" ) { formfield("typeid","hidden",3,1,0,200,200,$typeid); }

@@ -109,6 +109,7 @@ html/scripts/php/cleanprocessor.php -text
 html/scripts/php/expire.php -text
 html/scripts/php/nightlyroguecheck.php -text
 html/scripts/php/processlogs.php -text
+html/scripts/php/runlogwatch.php -text
 html/scripts/php/vacuumdb.php -text
 html/scripts/php/vacuumtsyslog.php -text
 html/scripts/php/weeklyindexrebuild.php -text

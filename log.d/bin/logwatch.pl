@@ -472,7 +472,7 @@ if ($Config{'debug'} > 7) {
 my $TempDir;
 my $UseMkTemp = $Config{'usemktemp'};
 my $MkTemp = $Config{'MkTemp'};
-if ($UseMkTemp and (-x $MkTemp)) {
+if ($UseMkTemp and ($MkTemp)) {
    $TempDir = `$MkTemp -d $Config{'tmpdir'}/logwatch.XXXXXXXX 2>/dev/null`;
    chomp($TempDir);
    unless (($? == 0) and $TempDir) {

@@ -47,12 +47,14 @@ define("REPORTADDRESS", "justin@dynam.ac");
 						die(pg_errormessage()."\n");
 					$cleanid=stripslashes(pgdatatrim($SQLQueryResultsObject->tprocess_id));
 					$cleanhost=gethost($dbsocket,stripslashes(pgdatatrim($SQLQueryResultsObject->thost_id)));
+					$PurgeQuery="Begin ; ";
 					$PurgeQuery = $PurgeQuery . "delete from Syslog_TAlert where Syslog_TAlert.TSyslog_ID=TSyslog.TSyslog_ID and TSyslog.TSyslog_ID > $cleanid and TSyslog.host='$cleanhost' ; ";
 					$PurgeQuery = $PurgeQuery . "delete from Syslog_TArchive where TSyslog_ID > $cleanid and host='$cleanhost' ; ";
-				}
-				$PurgeQuery = $PurgeQuery . "commit ; ";
-				$PurgeSQLQueryResults = pg_exec($dbsocket,$PurgeQuery) or
+					$PurgeQuery = $PurgeQuery . "commit ; ";
+					$PurgeSQLQueryResults = pg_exec($dbsocket,$PurgeQuery) or
                                               	die(pg_errormessage()."\n");
+					echo "Cleaned $cleanhost\n";
+				}
 			}
 			$endtime=time();
 			if ( ($endtime - $begintime) != 0 ) { 

@@ -1,6 +1,6 @@
 #!/usr/bin/php -q
 <?
-define("REPORTADDRESS", "justin@dynam.ac");
+define("REPORTADDRESS", "cscgiss1@maybank.com.sg");
 /*=============================================================================
  * $Id$
  *

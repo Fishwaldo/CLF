@@ -104,6 +104,7 @@
 						for ( $loop = 0 ; $loop != $SQLNumRows ; $loop++ ) {
 							$SQLQueryResultsObject = pg_fetch_object($SQLQueryResults,$loop) or
 								die(pg_errormessage()."\n");
+echo "host: ".$SQLQueryResultsObject->thost_id."<br>";
 							$cleanid=stripslashes(pgdatatrim($SQLQueryResultsObject->tprocess_id));
 							$cleanhost=gethost($dbsocket,stripslashes(pgdatatrim($SQLQueryResultsObject->thost_id)));
 							$PurgeQuery = $PurgeQuery . "delete from Syslog_TAlert where Syslog_TAlert.TSyslog_ID=TSyslog.TSyslog_ID and TSyslog.TSyslog_ID > $cleanid and TSyslog.host='$cleanhost' ; ";
