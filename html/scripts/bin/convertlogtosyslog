@@ -1,0 +1,28 @@
+#!/bin/tcsh
+#$Id$
+set loop=0
+set host=$2
+if ( ! -e $1 ) then
+	exit
+endif
+set count=`wc -l $1 | tr -s " " "\t" | cut -f2`
+while ( $loop != $count )
+	set loop=`expr $loop + 1`
+	set results=`getline $1 $loop | tr -s " " "\t" | cut -f3,5-` 
+	set msgtime=`echo $results | tr -s " " "\t" | cut -f1`
+	set message=`echo $results | tr -s " " "\t" | cut -f2- | tr "\t" " "`
+	echo "insert into TSyslog (facility,severity,date,time,host,message) values (4,21,'8/31/2002','$msgtime','$host','$message');" 
+end
+exit
+		
+
+CREATE TABLE TSyslog (
+  TSyslog_ID bigserial UNIQUE NOT NULL PRIMARY KEY,
+  facility integer,
+  severity integer,
+  date date,
+  time time,
+  host varchar(128),
+  message  text
+)\g
+

@@ -1,0 +1,5 @@
+/*	$CoreSDI: TODO,v 1.4.2.6 2001/05/24 01:57:50 alejo Exp $	*/
+Things to do:
+
+- Peochek utility and commutication with audit (raw and xml)
+- Add vcr protocol (new module?)

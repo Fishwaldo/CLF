@@ -1,0 +1,44 @@
+OpenBSD
+=======
+
+Uncompress msyslog-1.04.tar.gz and do a "./configure" and then a "make".
+If everything goes well (it should! ;), do a "make install".
+
+This version of "msyslog" is full compatible with previous configuration files
+from BSD syslog and sysklogd's.
+
+RedHat GNU/Linux
+================
+
+You need /proc filesystem to let im_linux work.
+
+FreeBSD
+=======
+
+No thorough testing yet, so no help available yet. But everything should work
+just fine.
+
+NetBSD
+======
+
+No thorough testing yet, so no help available yet. But everythyng should work
+just fine.
+
+
+Solaris
+=======
+
+Specific differences on configuration file not supported (like 'ifdef'
+conditionals).
+
+
+Irix
+====
+
+You may compile with -O3 level, but it is not default.
+
+Aix
+===
+
+Check your library settings, since it is ugly on Aix!
+

@@ -1,0 +1,17 @@
+#!/bin/sh
+##########################################################################
+# $Id: onlycontains,v 1.8 2004/06/21 13:45:02 kirk Exp $
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+# Just does a case-insensitive egrep ;)
+
+/bin/egrep -i "$@"
+

@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+#
+#
+use DBI;
+
+$configfile = "/etc/log.d/db.conf";
+eval('require("$configfile")');
+die "*** Failed to eval() file $configfile:\n$@\n" if ($@);
+
+my $dbh = DBI->connect($DBI, $user, $password) or die DBI::errstr;
+
+my $sth = $dbh->prepare("select tpremadetype_desc from syslog_tpremadetype") 
+	or die "Can't prepare statement: $DBI::errstr";
+
+my $rc = $sth->execute
+	or die "Can't execute statement: $DBI::errstr";
+
+if (!$sth->rows) {
+	print "Error: no systems defined\n";
+	exit (99);
+}
+
+print "System identifiers:\n";
+print "===================\n";
+while (($system) = $sth->fetchrow_array) {
+	if ($system) {
+		print "$system\n";
+	}
+}
+# check for problems which may have terminated the fetch early
+die $sth->errstr if $sth->err;
+
+$dbh->disconnect();

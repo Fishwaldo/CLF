@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+#
+#
+use DBI;
+
+$configfile = "/etc/log.d/db.conf";
+eval('require("$configfile")');
+die "*** Failed to eval() file $configfile:\n$@\n" if ($@);
+
+if (!@ARGV) {
+	print "Usage: getconfig system\n";
+	exit (99);
+}
+
+$sql  = "select logwatch_cmd from syslog_tpremadetype, syslog_thost where ";
+$sql .= "syslog_tpremadetype.tpremadetype_id=syslog_thost.tpremadetype_id and ";
+$sql .= "syslog_thost.thost_host='". @ARGV[0]. "'";
+
+my $dbh = DBI->connect($DBI, $user, $password) or die DBI::errstr;
+
+my $sth = $dbh->prepare($sql) or die "Can't prepare statement: $DBI::errstr";
+
+my $rc = $sth->execute
+	or die "Can't execute statement: $DBI::errstr";
+
+if (!$sth->rows) {
+	print "Error: no such system\n";
+	exit (99);
+}
+
+while (($logwatch_cmd) = $sth->fetchrow_array) {
+	if ($logwatch_cmd) {
+		print "$logwatch_cmd\n";
+	}
+}
+# check for problems which may have terminated the fetch early
+die $sth->errstr if $sth->err;
+
+$dbh->disconnect();

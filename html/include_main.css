@@ -1,0 +1,209 @@
+.header-top    {background-color: #C8D0E0; color: black;}
+.header-bottom {background-color: #98A0B8; color: black;}
+.footer-top    {background-color: #98A0B8; color: black;} /*same as header_bottom*/
+.footer-bottom {background-color: #C8D0E0; color: black;} /*same as header_top*/
+.footer-button {vertical-align: bottom; text-align: center; padding-left: 2px; font-size: 8pt}
+
+.layout-separator {background-color: #333366; height: 1px}
+
+.hilite{background-color: yellow; color: black}
+
+img{border: 0}
+kbd{color: #003366;
+	font-family: Courier, monospace;}
+
+body{margin: 0; padding:0; background-color: white}
+body, td, th {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 8pt}
+
+blockquote{font-family: verdana, sans-serif; margin-bottom: 0; font-size: 9pt; margin-left: 2em; margin-right: 2em}
+.breadcrumbs{border: 1px dashed #98A0B8; padding: 2px}
+
+.small {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 5pt;}
+.small a {
+	text-decoration: none;}
+
+a:link {color: #000099}
+a:active {color: #0000ff}
+a:visited {color: #000055}
+
+label {cursor: pointer}
+ul.st-markup,ol.st-markup{margin-top: .25em}
+ul.st-markup li, ol.st-markup li{margin-bottom: .25em}
+
+p.st-markup {margin-top: 1em; margin-bottom: .2em}
+blockquote.st-markup{margin-bottom: 1em; border: 1px dashed #C8D0E0}
+blockquote.st-markup p{margin: 0}
+code{margin-top: 1em; margin-bottom: 1em;}
+/*hr.st-markup{margin-top: -.3em; margin-bottom: -.7em; display: block}*/
+h1.st-markup,h2.st-markup,h3.st-markup,h4.st-markup,h5.st-markup,h6.st-markup{
+	margin-top: 0;}
+/* End Markup Styles */
+
+input.FormHelper-invalid, select.FormHelper-invalid, textarea.FormHelper-invalid {background-color: #ffc0cb}
+label.FormHelper-invalid{color: red; font-weight: bold}
+label.FormHelper-invalid:after{color: red; font-size: smaller;content: ' (required)'}
+input.Formation-invalid, select.Formation-invalid, textarea.Formation-invalid {background-color: #ffc0cb}
+label.Formation-invalid{color: red; font-weight: bold}
+label.Formation-invalid:after{color: red; font-size: smaller;content: ' (required)'}
+
+table.calendar {border: 0}
+table.calendar td, th {text-align: center; border: 0}
+table.calendar th {height: 10px; font-size: 7pt;}
+table.calendar td {width: 19px; height: 10px; font-size: 9pt;}
+table.calendar .month {font-weight: bold; margin-top: 3px; font-size: 12pt; text-align: center}
+table.calendar .month a{text-decoration: none}
+table.calendar th {color: green; text-align: center;}
+table.calendar td.linked-day {font-size: 11pt;}
+table.calendar td.highlight-day {font-size: 11pt; background-color: red}
+table.calendar td.light-day {font-size: 11pt; background-color: green}
+
+.content-main, .header, .footer{ width: 100% }
+
+.content-left {
+	background-color: #f0f0f0;
+	font-size: 10pt;
+	width: 110px;
+	padding: 4px;
+	vertical-align: top;
+	text-align: left;
+/*	padding-right: 15px;*/
+	border-right: thin dashed #CCC}/*this is the same color as "dark_grey" above*/
+.content-middle{
+	vertical-align: top;
+	width: 625px;
+	padding: 10px;}
+.content-right{
+	vertical-align: top;
+	border-left: thin dashed #CCC;
+	background-color: #eee;
+	padding-left: .8ex;
+}
+
+h1, h2, h3, h4 {
+	font-family: arial,helvetica,sans-serif;
+	font-weight: bold;
+	color: #006;}
+
+h1{font-size: 140%; margin-top: .2em}
+h2{font-size: 125%}
+h3{font-size: 110%}
+h4{font-size: 100%}
+
+input {font-family: arial, helvetica, sans-serif}
+input.small, select.small {
+	font-size: 9pt;}
+
+textarea {font-family: "andale mono", "monotype.com", "courier new", monospace; font-size: 10pt}
+textarea.small {
+	font-size: 9pt;}
+
+pre,code,tt {
+	font-family: "andale mono", "monotype.com", "courier new", monospace;
+	font-size: 90%;
+}
+code{
+	background-color: #f0f0f0;
+	border: thin dashed #C8D0E0;
+	display: block;
+	margin-right: 15px;
+	margin-left: 10px;
+
+	font-size: 8pt;
+	line-height: 1.3em;
+	/*
+	width:95%;
+	overflow: auto;
+
+/*	font-size: 85%;
+*/	}
+
+
+ul.tab-navigation{
+	margin: 0;
+	padding: 0;
+	margin-top: 4px;
+	line-height: 1.2em;
+	list-style: none;
+	border: none;
+	clear: both;
+}
+ul.tab-navigation li{
+	margin: 0;
+	padding: 0;
+	float: left;
+	width: auto;
+}
+ul.tab-navigation a, ul.tab-navigation a:visited{
+	display: block;
+	width: auto;
+	white-space: nowrap;
+	color: white;
+	font-family: verdana;
+
+	border: 1px solid;
+	border-color: white #B7C0D0 #B7C0D0 white;
+
+	-moz-border-radius: .5em .5em 0em 0em;
+	border-radius: .5em .5em 0em 0em;
+	border-top-right-radius: .5em;
+	border-bottom-right-radius: .5em;
+
+	background-color: #98A0B8;
+	padding: 2px 5px;
+	margin-bottom: -3px;
+
+	font-size: smaller;
+	text-decoration: none;
+}
+ul.tab-navigation a:hover{
+	background-color: #C8D0E0;
+}
+ul.tab-navigation a.active, ul.tab-navigation a.active:visited {
+	background-color: #C8D0E0;
+	color: black;
+}
+
+ul.flat-list{
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+ul.flat-list li:before { 
+	display: marker;
+	marker-offset: 0;
+}
+ul.flat-list li{ 
+	list-style-position: inside;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+.delPost{font-size: smaller; margin-bottom: .5em}
+.delPost p{margin-top: 0; margin-bottom: 0}
+.delTag {font-style: italic; text-decoration: none}
+.delExtended{margin-left: 1em; margin-top:0}
+
+
+
+/* ok stuff */
+A.tNav:link {
+        FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY:
+verdana,arial; TEXT-DECORATION: none
+}
+A.tNav:visited {
+        FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY:
+verdana,arial; TEXT-DECORATION: none
+}
+A.tNav:hover {
+        FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY:
+verdana,arial; TEXT-DECORATION: underline
+}
+.copyr {
+	FONT-SIZE: 10px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+.headline3	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:14px; font-weight:bold; color:#000000;}

@@ -1,0 +1,102 @@
+1. Licensing
+
+Modular Syslog and Cisco's TACACS+ Daemon have thier own licenses. READ THEM!
+SMT and the Security Framework are covered under the GPL.
+
+2. What is up with the versions of your software?
+
+If you haven't noticed already, the version numbers reported in the tar.bz2 archives doesn't reflect the file names, this is because I'm moving from a crusty source management system to a better one. Real versioning via CVS is coming shortly.
+
+3. What is the Syslog Management tool & the Security Framework?
+
+The idea is quite simple, SMT uses Modular Syslog to collect syslog messages and dump them to a SQL server(PostGreSQL). SMT then grabs logs and runs rules consisting of regular expressions, facility & severity ranges, and other parameters such as time to determine who, when, and how to alert.
+
+4. How much log volume can SMT handle?
+
+Our system is an IBM 335 w/ Dual SCSI-160 36gig mirrored drives. I can sustain 28 megabytes per second reading and about 18 megabytes per second writing. All told, the highest volume my system has run was about 800 megabytes of logs in a given day. My calculations seem to indicate that our system could handle 4-5 gigabytes a day without showing significant lag on the web interface side.
+
+5. What are the components of a working SMT System?
+
+# I'll reserve the good detail for the docs but the components of a working SMT system are as follows: One or more log processors
+# A log expiration process
+# A reindexer
+# A log archiver
+# One or more web consoles
+# The database
+# One or more syslog servers
+# The TACACS+ daemon to collect command accounting
+
+6. What are the minimums?
+
+Frankly, I run my software on my personal firewall at home(486 DX25 w/ 48MB of RAM). So you can get away with running it on a fairly slim system, problem: IDE sucks. If you run it on an IDE subsystem, don't complain to me when it doesn't perform. I do recommend a dual processor system for sites where there is a decent amount of use going on. Why? Because one processor can be involved dealing with the database and the other can handle everything else. V2.4 Linux Kernel CPU affinity isn't great but 2.6 shows better results(from my initial testing).
+
+7. Great, how much RAM will I need?
+
+That is a very good question. If you are serious about this, I'd recommend a gig of RAM. File system caching will use a LOT of it up. For example, we run about a 5 gig foot print and we have a gig and a half of RAM. PostgreSQL is acting using about 800megabytes of it. The rest is OS caching and the like.
+
+8. PostgreSQL looks like it could use some tuning.... can you help?
+
+Sure. Down below are some snippets from my postgresql.conf file(mind you, I have a 1.5gig of RAM):
+
+DO NOT USE ALL OF YOUR FREE RAM FOR SHARED BUFFERS, YOUR PERFORMANCE WILL PAY!
+shared_buffers = 29400 # min 16, at least max_connections*2, 8KB each
+Default amount available for sorting each query
+sort_mem = 4096 # min 64, size in KB
+
+How much memory vacuum will have available to it(and it will need it)
+vacuum_mem = 196608 # min 1024, size in KB
+
+YOU MUST TUNE YOUR FSM PAGES! The Free space map is used to track free space within the existing table space. The FSM tracks free space, as soon as you have more slots free then FSM space, FSM will start losing free space withing your database. Thus it will start to grow and grow and grow till you either increase your FSM AND VACUUM or perform a FULL VACUUM.
+max_fsm_pages = 40000000 # min max_fsm_relations*16, 6 bytes each
+
+PostgreSQLs default action is to 'sync' after every write. This is too expensive. The downside is that you can suffer data corruption if the system crashes. Reality: I've never lost data to a crash but there is always a first time for everything
+fsync = false # turns forced synchronization on or off
+
+wal_buffers = 128 # min 4, 8KB each
+
+If memory serves me correctly, this tells PostgreSQL about how much the system cache will typically run at. 8)
+effective_cache_size = 48400 # typically 8KB each
+
+Hey, it's a logging system, log dag nabit!
+syslog = 1 # range 0-2; 0=stdout; 1=both; 2=syslog
+syslog_facility = 'LOCAL0'
+syslog_ident = 'postgres'
+
+I've added profiling code to dump some stats about PostgreSQL. As a result we need to make sure PostGreSQL is actually collecting stats!
+log_timestamp = true
+stats_start_collector = true
+stats_command_string = true
+stats_block_level = true
+stats_row_level = true
+stats_reset_on_server_start = true
+
+One other change to make but this is a system option not a PostgreSQL option
+sysctl kernel.shmmax=1342177280
+
+9. What OS does this run on?
+
+Frankly, I've run it on RedHat but I prefer Slackware. However the limitations of my software would be more based on Modular Syslog and PostGreSQL. ie. of Modular Syslog compiles on FreeBSD, should work fine on FreeBSD.
+
+10. How can I tell how large of Free Space Map I'll need for PostgreSQL?
+
+Run a 'vacuum full analyze verbose' and it will tell you the number of pages your database is using. Make sure you do that after you have roughly the amount of data you want to maintain in your database.
+
+11. Why is your software better then anyone elses?
+
+a. Because anyone can manage it, not just the one sysadmin who is never around when his pager goes off and no one else knows.
+b. It is scalable in that it can be centrally managed and grown.
+c. It can interface with systems such as HP Service Desk.
+d. It allows for better event correllation as all events are available via one console.
+
+12. I noticed that you don't have your database doing a lot of bounds checking on data... what gives?
+
+Database IO is a precious thing. I reserve all of the overhead other than IO for other hosts(in a distributed system). As a result, I leave data bounds checking mainly to the application and not the database.
+
+13. What authentication mechanisms can I use?
+
+You can use pretty much any authentication mechanism you want. My software looks for the REMOTE_USER variable. I recommend mod_auth_pgsql so you can use the Security Framework password database but you could use SecurID, ActiveDirectory, or any other native Apache authentication module.
+
+14. What about MySQL?
+
+Time dictates I have twenty four hours a day. Six hours of that is sleep, 10 hours of that is work, that leaves me a few hours to exercise and be with my wife. If you want MySQL support, I gladly welcome it but I do not have the time to write for it. 8(
+

@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w
+use strict;
+##########################################################################
+# $Id: removeservice,v 1.4 2002/10/12 02:08:20 kirk Exp $
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+my ($ServiceName, $ThisLine);
+my ($linesin, $linesout) = (0, 0);
+
+# This will remove the unwanted service from a logfile
+# in the standard /var/log/messages format.  Case insensitive
+
+if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
+   print STDERR "DEBUG: Inside RemoveService...\n";
+}
+
+$ServiceName = $ARGV[0];
+
+while (defined($ThisLine = <STDIN>)) {
+   $linesin++;
+   unless ( ($ThisLine =~ m/^... .. ..:..:.. [^ ]* $ServiceName\[[0123456789]*\]: /oi) or
+         ($ThisLine =~ m/^... .. ..:..:.. [^ ]* $ServiceName: /oi) ) {
+      $linesout++;
+      print $ThisLine;
+   }
+}
+
+if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
+   print STDERR "DEBUG: Inside RemoveService: $linesin Lines In, $linesout Lines Out\n";
+}
+

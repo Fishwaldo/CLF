@@ -1,0 +1,445 @@
+$Id$
+
+Feature Request:
+
+Bugs:
+1.  Change code to allow for tailing spaces when looking at the expression field
+
+3/10/2004
+	-  Removing any reference to company name
+
+3/9/2004
+	-  Changed out company logo
+	-  Added GPL notice to all libraries
+
+1/21/2004
+	-  Found a bug where a host would email off an alert with no text.  I've put a stop gap fix in.
+
+1/13/2004
+        -  Fixed bug with msyslog.pgsql where SET STORAGE didn't have a space before it.
+        -  Fixed bug where hour in time of rules would default to 18:00 for no good reason
+	-  Fixed two problems with cloning rules:  1)  order was not preserved  2)  an imported version of the database couldn't clone because fields that were empty needed to have non-null defaults applied
+	-  Forgot to merge in latest VPN reports
+
+1/6/2004
+        -  Added 'left menu' support for ACID and MRTG groups in security framework should the ever be added 8)
+
+1/6/2004
+	-  Added 'left menu' support for ACID and MRTG groups in security framework should the ever be added 8)
+
+1/1/2004
+	-  Fixed spelling error in with the word 'threshold' in the rules schema
+	-  Fixed a bug in vacuumdb where it was 'ANALYZ' not 'ANALYZE'
+
+12/19/2003
+	-  Updated code to look into /opt/apache
+
+12/10/2003
+	-  Updated database to schema to not use compressed text fields(we'll see how this performs)
+	-  working on adding interfaces to more lock data and other new stats with PostgreSQL V7.4
+	-  cleaned up some button descriptions on the maintenance page, also added a lock view as well as a settings view
+
+12/9/2003
+	-  Finished rule.php support for basic timer maintenance.  Need to add another page to graft timers onto rules.
+	-  processlogs.php is now setup to support rule timers
+	-  need to write rule expiration process 
+	-  started converting away from compressed text in hopes of providing faster data retrieval.... also pulled OIDs from DB definition
+
+12/8/2003
+	-  Adding support for date and time based rules with date ranges, day of week selections, as well as deleted rules, need to add interface to control rule timestamp properties
+
+12/7/2003
+	-  finished adding accumulation thresholds
+
+12/3/2003
+	-  adding support for both types of thresholds.  Need to update web pages to reflect new radio buttons.
+	-  added web configuration support for supression thresholds and accumulating thresholds, now onto updating the log processor
+	-  basic supression works(kinda), need to verify functionality
+
+12/2/2003
+	-  customer profiles can now have multiple hosts added at once.
+	-  fixed a stupid bug where <prev|refresh|next> didn't behave right.  next would stop working if you started at oct-26-2003 and it would stay on oct-26-2003
+	-  Added web-based framework and database schema to support alert supression thresholds
+
+12/1/2003
+	-  Updated processlogs.php code to better deal with single entry/no rules vs mutliple rules
+
+11/19/2003
+	-  Updated mail table to enforce unique login ids(effectively stopping two processes from running at the same time, one will crash and die(safely))
+	-  Updated openmail and closeopenmail to use transaction support since PostgreSQL no longer does server-side auto-commit(ie. convert everything to transactions)
+	-  Transaction support should now be officially added, will do some testing
+
+11/18/2003
+	-  Updating program for support with PostGreSQL V7.4
+	-  Fixed host process table to reflect the fact that multiple hosts are in there by default	
+
+10/13/2003
+	-  Added alert total to bottom of alert aggregation
+
+10/6/2003
+	-  finished support for alert aggregation
+	-  updated 1stview to pull the current time and date
+	-  fixed host.php bug where you could expire syslogs but not be forced to expire syslogs
+
+10/5/2003
+	-  still adding support for alert aggregation.  Basic aggregation works plus alert zooming but need to add support for across the board for other alert queries
+
+10/3/2003
+	-  added ability to un/suspend log processors from the web interface
+	-  updated maintenance to rebuild all indexes in an better manner(ie. grab the index list from the DB rather then by hand)
+	-  added additional framework to do alert aggregation interface.  Need to add 'aggregation code' for display
+
+9/24/2003
+	-  weeklyindexrebuild.php now pulls all indexes from the system and rebuilds them.  The result is that the system will now rebuild any new indexes without manual reconfiguration.
+
+9/15/2003
+	-  launchid was not initiated correctly in the clonerule.
+
+9/2/2003
+	-  Fixed a bug where '\'s at the end of a line caused problems because we were not properly dealing with them in general.  Fixed that.
+
+8/23/2003	
+	-  Created another bug when fixing 5000 line paging.  Timestamp was thrown off in view.php
+
+8/18/2003	
+	-  Syncing changes from production smt environment:  vacuumtsyslog.php
+	-  Updated weeklyindexrebuild.php to account for the correct indexes
+	-  Updated maint.php to account for the three new indexes for the launch program section
+
+8/13/2003
+	-  view.php has had several updates.  Paging should now be fixed.  Multiple searches appeared not to be working correctly.
+	-  Needed to add lastid as hidden var if the variable was set
+	-  Needed to use urlencode on top of htmlspecialcharacters, filters were broken because of it
+
+8/11/2003
+	-  1stfilter.php doesn't list 'global' filters that you down own
+	-  modified view.php to not let the user save a filter with no description
+	-  added support to delete all of a user's filters(ie. do before delete)
+	-  another problem popped up with filter.php when I added the delete user filter option
+
+8/1/2003	
+	-  processlogs.php now supports launching external programs!
+
+7/31/2003
+	-  Updated vacuumdb.php to do a full vacuum of the TSyslog table.  Why?  Because the system doesn't reclaim disk space or use old delete space for some reason
+	-  Almost finished adding launch program code, need to test.
+
+7/27/2003
+	-  Added weeklyindexrebuild.php which rebuilds all indexes at 5am Sunday morning
+
+7/23/2003
+	-  Continue the programming of the 'launch' ability into the system.  Will need to touch code for clearing stale processors
+	-  Adding another maintenance option for viewing the log volume breakout of every host in the Syslog_TArchive table
+	-  Just shoot me:  I have added reindexing support to the maintenance page.  I have also updated vacuumdb to reindex before the vacuum
+	-  Updating maintenance displays to show what the object types are, views, tables, etc..
+	-  Can now reindex the all of the SMT-related/created indexes from the maintenance page
+
+7/22/2003
+	-  Updating software to include a basic maintenance page
+	-  Create script to do 'vacuum analyze TSyslog', the system will attempt to vacuum every hour
+	-  Added maintenance section to allow for web-based manual db vacuum
+	-  Cleaned up maintance page to do 'analyze'.
+	-  Adjusted 'hourly' script to analyze, not vacuum
+
+7/21/2003
+	-  Updated processor.php to allow clearing of stale processors via the web browser
+	-  Updated processlogs.php to update processed ID's via the same delete transaction
+	-  processlogs.php no longer can clear stale processes, it now issues alerts in the event the system is taking longer than an hour between runs
+	-  1stequiptype.php did not properly exit if user did not have permissions 8(
+	-  Found a bug in the BottomQuery portion of the distinction section for view.php.  It was requesting entries from TSyslog, not tarchive.  8(
+	-  Basic launch administration is finished.  Need to extend rules to support launching.
+	-  Updated rule.php to allow for the launch field.
+	-  Fixed a problem where using premade rules only pulled the description + expression.  Updated to pull severity, facility, rule-or-level, and launchid
+
+7/20/2003
+	-  Found BIG BUG with how the system pulls syslogs.  It turns out that some systems are able to force SMT to think it is learning data @ 1/1/2003.  In any case, the system is inserting records but it is not accounting for them.  It was alerting but not deleting them. 8(  I fixed it.  
+	-  I also fixed how the system calculates timeframes.
+	-  Added new index to TSyslog for host & TSyslog_ID to hopefully allow for faster searching
+
+7/16/2003
+	-  processlogs.php is more vocal about cleanup
+	-  changed page access so the system checks to see if the client connection is coming on a port < 443, if so then error
+	-  there was a bug with view.php asking for BottomTopQuery instead of BottomQuery.  Fixed
+
+7/9/2003
+	-  processlogs.php wasn't queueing to 64K before migrating logs over.  The system now dumps out debug output for every 64K block
+
+7/8/2003
+	-  alert.php now adjusted to join both tables
+	-  Found an issue with hosts.php where deleting a host deleted syslogs but not alerts related to those logs.  Fixed that problem.  8)
+	-  Processlogs.php is alsmost finished.  8)
+	-  processlogs.php is done.  Time to load another build onto dangermen.com!
+	-  Fixed expirelogs.php to expire off of the archive table, nightlyroguecheck also checks both tables
+
+7/7/2003
+	-  Will be working to have TSyslog archive logs to a different table after processing.  The result should be a giant speed up!  Starting after 0.212 
+	-  Created an archive table.  view.php now pulls from the archive table & current table
+	-  alert.php needs to be adjusted.
+	-  processlogs.php needs to push from one table to another
+	-  Initial results are very positive
+
+6/13/2003
+	-  Found a but where host.php doesn't delete a processor association for a host that has been deleted.  8(
+
+3/31/2003
+	-  Fixed a bug in processlogs.php where it was submitting emails w/ subject using $host instead of $loghost
+
+3/20/2003
+	-  Finished adding 'per host' rate alerting
+	-  Cleaned up rate-warning emails include the hostname in the subject line of the email
+	-  Updated processor.php to only list those hosts where that have not been assigned.  8)  
+	-  We don't just make the syslog product you buy, we make the syslog product you buy better!
+
+3/19/2003
+	-  Found a bug in view.php where saving filters was not saving 'facility & severity' rules
+	-  Update to pgsql.msyslog table to re-include premade hosts for SMT
+	-  Modifed customer.php to allow setting 'edit' attribute on a per-host basis 
+	-  Added support for users to edit rules assuming they have 'permission' to do so.  8)
+	-  Broke user cloning, forgot to adjust for destination user as well as new attributes, all fixed 
+	-  Added individual host log rate warnings, added per host rate warnings to host.php, need to do processlogs.php
+
+2/21/2003
+	-  Updated view.php as it was not having difficulties marking lines in red when multiple matches would be happening
+
+2/3/2003
+	-  Finished basic function comments in pix.php, should probably rename the library
+
+1/27/2003
+	-  Fixed a problem with numberofmonth where it was not going up to December.
+
+1/14/2003
+	-  Updated processlogs to be a little more carefull about 'divide by zero' errors when calculating speed numbers
+	-  Updated vacuumdb script to vacuumdb the securityframework instance as well as SMT.
+
+1/13/2003
+	-  Included default host 'localhost' with one rule that responds to root@localhost
+
+1/12/2003
+	-  Made sure smt will work with mod_auth_pgsql
+
+12/4/2002
+	-  addmail function was missing a appostrophe protection for SQL insertion
+	-  Took out a debug message in the clonedenial rules section
+
+11/26/2002
+	-  Removed dropdenials as I already had dropdenial.  dropdenails was referenced in rule.php
+	-  Adding lots of comments, need to finish this task
+
+10/23/2002
+	-  vacuumdb now does the vacuum inside PHP as cleanpgsqlnightly isn't working quite right.
+
+10/1/2002	
+	-  emails issued by processlogs now append the name of the box for which the alert belongs
+	-  the alert page now has a 'refresh' option
+	-  discovered another bug in alert.php where viewing alerts by host doesn't work anymore  8(
+	-  making alerts available to customers, that was the problem.  
+	-  alerts should now be viewable by users
+
+9/29/2002
+	-  Pulled some debugging code
+	-  Made more premade rule adjustments
+
+9/23/2002
+	-  still working on the reporting engine
+
+9/20/2002
+	-  expire.php, archive.php, nightlyroguecheck.php, processlogs.php all use php-cli mode 8)
+	-  working on reports to breakdown data procesing into smaller chunks
+
+9/2/2002	
+	-  Finished first report: cisco-pix-bandwidthbreakdown.php 
+	-  Updated nightlyroguecheck.php to check logs from the last day to now
+
+9/1/2002	
+	-  More work on the reporting framework
+
+8/31/2002
+	-  Begin adding support for pix utilization reports
+
+8/30/2002
+	-  Updated database indexes to have cencatenated index for TSyslog on host,date, & time
+	-  Updated the customer view so that the filter type wasn't a text box but hidden as it should be.
+
+8/28/2002
+	-  Fixed yet another bug with the customer view where hostdropdown where logincanseehost as we were passing it host instead of hostid
+
+8/28/2002
+	-  Fixed a bug with SMT w/ view.php and filters using facility & severity, the code even mentioned it was broken
+
+8/27/2002
+	-  Missing a bunch of indexes on alerts & syslogs, we want indexs for time and date
+
+8/26/2002
+	-  Updated processlogs to provide more details about time frames
+
+8/24/2002
+	-  Fixed a problem with the premade rules not correctly saving the rule type.
+
+8/23/2002
+	-  Fixed a problem with using facility & severity and not matching rules correctly in both view.php & processlogs.php
+	-  Added hostname as part of subject line in SMT report
+	-  Found more problems with facility & severity with view, appears processlogs.php is also flawed
+	-  Okay, so major fixes were made to processlogs.php and to view to finish up proper support for facility and severity
+
+8/22/2002
+	-  Took out an 'Expression:' debug statement
+	-  Did some adjustment to the time stamping of 'processlogs.php'
+
+8/13/2002
+	-  Added support for 's and \'s in the filtering code
+	-  Premade rules now supports 's and \'s.  Also fixed new problems with rules page.  Filters appears good as well
+	-  Started updating premade hosts for cloning
+	-  Pixes, LocalDirectors, CatOS Switches, and IOS Routers are now ready for cloning
+	-  IOS Switches and VPN devices remain
+
+8/12/2002
+	-  Took out all of the premade rules from the Syslog_TPremade as they were overkill and unnecessary
+
+8/10/2002
+	-  Updated rule.php & processlogs.php to correctly support \'s & "'"s 
+
+8/8/2002
+	-  nightlyroguecheck had a few bugs, fixed
+	-  view.php was missing an AND for viewing syslogs for hosts assigned to a customer
+
+8/5/2002
+	-  Added pagma no-cache and 300 second refresh to alert.php
+	-  Displays time & date of last syslog message when query generates logs > 5000 alerts, provides info in relation to query timeframe
+
+7/28/2002
+	-  Added the ability to view the next 5000 lines should someone want to.
+
+7/26/2002
+	-  added the ability to administer equipment types 
+	-  Fixed bug with emails where there wasn't an \r issues with each \n
+	-  Fixed bug where emails contained HTML color codes
+	-  ViewSaves would enable after anyone saved a syslog entry.  Now it only enables after the logged in user saves something
+
+7/24/2002
+	-  There was an issue with filterid not being set correctly so filter.php could not properly tell between an add and a modfiy
+	-  Added navigation buttons to alerts page
+	-  Cloning of rules only appears if there is more than one host
+	-  Delete page slimmed down to only allow optional deletion of syslog messages
+	-  Saved results page displays error if there are no saved syslogs in the savedata table
+	-  Changed version number to V0.99.20B
+	-  SecurityFramework while a separate package has been sufficiently integrated into SMT
+
+7/23/2002
+	-  Filters are broken in that setting filters to facility & severity only 'includes' regardless of setting
+	-  Fixed problem with filters, they were 'half implemented'
+
+7/21/2002
+	-  All users of the appropriate security level will see the saved syslog option
+	-  Had to change Filter Type: Rule, etc... 
+
+7/15/2002
+	-  Changed 'Rule Type:  Rule, Log Level, and Both' to 'expression, facility + severity, and expression, facility & severity"
+	-  Added scripts directory w/ expire, processlogs, and a /tmp debug tool
+	-  Fixed renaming so that only syslogs may be renamed.  8)
+	-  Added nightlyroguecheck script to call the nightlyroguecheck.php script(checks for hosts who log but aren't defined)
+	-  I though "Multiple filter expressions appear to be broken when viewing syslogs", I was wrong.
+	-  Fixed 'color' problem with alert.php
+
+7/10/2002
+	-  Adjusted pgsql.msyslog so we do not use 'char' but 'varchar'
+
+5/29/2002
+	-  Still working on processlogs.php to update processed ids for those hosts w/ no rules
+	-  View.php line 321 appears to have issues
+
+5/28/2002
+	-  began work on processlogs.php to cover those hosts who are assigned to a processor but have no rules assigned.
+	-  customer.php and processor.php now check for duplicates/single assignments as appropriate
+
+5/12/2002
+	-  processlogs.php is finished(in terms of configuration)
+
+5/11/2002
+	-  Started working on processlogs.php
+
+5/10/2002
+	-  expire.php was only written to support a single expiration time and not a time per host.
+
+5/9/2002
+	-  view.php updated to start supporting thost_id
+
+5/8/2002
+	-  1sthost.php and hosts.php should be converted to support thost_id 
+	-  1stcustomer.php and customer.php should be converted to support thost_id
+	-  1stprocessor.php and processor.php should be converted to support thost_id
+
+5/7/2002
+	-  Started working on converting the system from using _host as a key to THost_ID
+
+4/11/2002
+	-  Fixed 1stcustomer.php as the form did not 'close' for either form
+	-  Fixed alert.php color coding
+	-  I had to install 'distinct on' in the SQL log selection as some log entries appeared more than once.
+
+4/4/2002
+	-  Added code to fix duplicate entries in emails
+	-  Changed version to V0.99.01B
+
+3/18/2002
+	-  Log data is color coded
+	-  A new version of processlogs.php is out w/ debug msgs in it.  Working good on Harley.
+	-  Took debug out of 'saving syslogs'.
+	-  Save Syslogs now supports using "'"  8(  Much work left to do w/ 's
+	-  Can now view data by 'user and host type'
+	-  Started work on deleting hosts from the system and accounting for host rules
+	-  adding a host no longer shows the 'renaming fields'
+
+2/24/2002
+	-  Hosts menu allows synchronizing other tables when renaming hosts 
+	-  Fixed paging
+
+2/22/2002
+	-  Denial chains are complete.  8)
+
+2/19/2002
+	-  working on processlogsnew.php which cache's host rules & denial rules at the beginning to minimize DB access
+
+2/18/2002
+	-  Updated pages to announce how long they took to process
+	-  Clone rules broken, sequence not working
+	-  Fixed cloned rules as they were calling for the premade sequence number not the rule sequence number
+
+2/17/2002
+	-  Final support included for priority & severity
+	-  Created archive, supports dumping data to std out for bzip2  8)
+	-  Denial chain support added to system, processlogs.php all that remains 
+
+2/16/2002
+	-  View, Alerts, and View Saves all use colors to convey severity
+	-  Filters support severity 
+
+2/15/2002
+	-  Changed named to Syslog Management Tool(for now)
+	-  Viewer now supports filters using facility and severity 
+
+2/13/2002
+	-  Updated view to look like a Berbee product.  8)
+
+2/12/2002
+	-  Made some progress on using filters w/ facilty & severity.  Very buggy
+
+2/11/2002
+	-  View logs produces repeates... think unnecessary Syslog_TRules invovled.
+	-  Process logs was a bit messaged up, the old delvierymessage variable instead of deliverymessage
+	-  Per host/per person email now works
+	-  Added code to msyslog to support writing facility & severity to the log messages
+	-  Working on scheme where rules & filters can be filter/rules,filter/rules & log levels, or just log levels
+
+2/10/2002
+	-  Can now clone customer accounts
+	-  Added stale processor auto-cleaning code so the system will clean up 'old processors' after 30 minutes
+	-  System sends an alert email if the system recieves some 3000+ log entries in a given sample.
+	-  Nightly system issues emails notifying for hosts who are logging to the system but are not defined as hosts in the system
+
+2/9/2002
+	-  Updated code to use PGSQL V7.2  8)  Can you say bigserial, no table lock vacuum, and much more?  8)
+	-  Looking into using the transaction interface. 
+	-  host properties isn't properly keeping the alert log expiration time <= syslog expiration time 
+	-  View host had a issue with 'view data from last five minutes'
+	-  View Saves had the group context wrong, denying access to the page if the group >= 2(ie noc or better)
+	-  Filter administration is should be finished

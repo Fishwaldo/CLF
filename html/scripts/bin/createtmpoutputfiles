@@ -1,0 +1,12 @@
+#!/bin/tcsh
+#$Id$
+# this script can be used to create output files in /tmp so expirelogs.php and processlogs.php
+# can both have their debug output saved to disk
+
+set loop=0
+while ( $loop != 5 )
+        set loop=`expr $loop + 1`
+        cp /dev/null /tmp/webresults.html.$loop
+	chmod 640 /tmp/webresults.html.$loop
+	chown root.users /tmp/webresults.html.$loop
+end

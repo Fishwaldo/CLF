@@ -1,0 +1,32 @@
+#!/bin/bash
+##########################################################################
+# $Id: zz-disk_space,v 1.5 2004/06/21 14:18:55 kirk Exp $
+##########################################################################
+
+if [ "$PRINTING" = "y" ]  && [ "`uname -s`" = "Linux" ] ; then
+   if [ -n "$show_home_dir_sizes" ] ; then
+      echo
+      echo
+      echo "------------- Home Directory Sizes ---------------"
+      echo
+      echo "Size    Location"
+      echo "(MB)"
+      du -s --block-size=1048576 /home/* | sort -n -r -k 1
+   fi
+   echo
+   echo
+   echo "------------------ Disk Space --------------------"
+   echo
+   df -h | grep '^/dev/'
+   echo
+elif [ "$PRINTING" = "y" ] ; then
+   echo
+   echo
+   echo "------------------ Disk Space --------------------"
+   echo
+   df -k
+   echo
+fi
+
+# vi: shiftwidth=3 tabstop=3 et
+

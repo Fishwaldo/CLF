@@ -1,0 +1,175 @@
+.copy	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#000000;}
+.sup	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:65%; color:#CC0000;}
+
+.copy1	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#000000;}
+.copy1b	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:80%; font-weight:bold; color:#003399;}
+.copy2	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:65%; color:#000000;}
+.copy3	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#FFFFFF;}
+.copy4	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:85%; font-weight:bold; color:#CC0000;}
+.copy5	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:80%; color:#CC0000;}
+
+.copyright	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#FFFFFF;}
+.byline		{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:65%; color:#FFFFFF;}
+
+.headline1	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:15px; font-weight:bold; color:#FFFFFF;}/* same as headline8 but CSC people are using it */
+.headline2	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:85%; font-weight:bold; color:#000000;}
+.headline2a {font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:20px; font-weight:bold; color:#003399;}
+.headline2b	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:20px; font-weight:bold; color:#696969;}
+.headline2c	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:15px; font-weight:bold; color:#003399;}
+.headline2d	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:10px; font-weight:bold; color:#696969;}
+
+.headline3	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:14px; font-weight:bold; color:#000000;}
+.headline4	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; font-weight:bold; color:#FFFF99;}
+.headline5	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; font-weight:bold; color:#FFFFFF;}
+.headline6	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:95%; font-weight:bold; color:#000000;}
+.headline7	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; font-weight:bold; color:#003366;}
+.headline8	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:15px; font-weight:bold; color:#FFFFFF;}
+
+a:link		{color:#003366}
+a:visited	{color:#003366} 
+
+a.link1:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#FFFFFF;}
+a.link1:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000;}
+
+
+a.link2:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+
+a.link2a:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2a:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2a:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+
+a.link2b:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2b:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+a.link2b:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#000000; text-decoration:underline;}
+
+a.link2c:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#003399; text-decoration:underline;}
+a.link2c:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#003399; text-decoration:underline;}
+a.link2c:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:11px; color:#003399; text-decoration:underline;}
+
+a.link3:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#000000; font-weight:bold; text-decoration:none;}
+a.link3:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#000000; font-weight:bold; text-decoration:none;}
+a.link3:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#000000; font-weight:bold; text-decoration:underline;}
+
+a.link4:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#003366; font-weight:bold; text-decoration:underline;}
+a.link4:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#993333; font-weight:bold; text-decoration:underline;}
+
+a.link5:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#003366; text-decoration:underline;}
+a.link5:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; color:#993333; text-decoration:underline;}
+
+a.link6:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#003366; text-decoration:underline;}
+a.link6:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#993333; text-decoration:underline;}
+
+a.link7:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#FFFFFF; text-decoration:none;}
+a.link7:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#FFFFFF; text-decoration:none;}
+a.link7:hover	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; color:#FFFFFF; text-decoration:underline;}
+
+a.link8:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:9px; color:#FFFFFF;}
+a.link8:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:9px; color:#FFFFFF;}
+
+a.link9:link	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:90%; color:#CC0000;}
+a.link9:visited	{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:90%; color:#CC0000;}
+
+a.linksmap:link 		{font-family:verdana,arial; font-size:55%; color:003366; text-decoration:none; font-weight:bold;}
+a.linksmap:visited 		{font-family:verdana,arial; font-size:55%; color:993333; text-decoration:none; font-weight:bold;}
+a.linksmap:hover		{font-family:verdana,arial; font-size:55%; color:003366; text-decoration:underline; font-weight:bold; }
+
+a.linksmaphead:link 		{font-family:verdana,arial; font-size:65%; color:000000; text-decoration:none; font-weight:bold;}
+a.linksmaphead:visited 		{font-family:verdana,arial; font-size:65%; color:993333; text-decoration:none; font-weight:bold;}
+a.linksmaphead:hover		{font-family:verdana,arial; font-size:65%; color:000000; text-decoration:underline; font-weight:bold; }
+
+a.crumb1:link		{color:#003366; text-decoration:underline; font-size:9px; font-family:verdana, arial, helvetica, universe, ms sans, default sans, default;}
+a.crumb1:visited	{color:#003366; text-decoration:underline; font-size:9px; font-family:verdana, arial, helvetica, universe, ms sans, default sans, default;}
+.crumb2				{color:#000000; font-size:9px; font-family:verdana, arial, helvetica, universe, ms sans, default sans, default;}
+
+TD.pipe				{font-family:verdana,arial; font-size:10px; color:#FFFFFF; font-weight:bold;}
+
+.error		{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:60%; font-weight:bold; color:#990000;}
+.errormessage		{font-family:verdana, arial, helvetica, universe, ms sans, default sans, default; font-size:70%; font-weight:bold; color:#990000;}
+
+#aboutbrandPop {position:absolute; left: 159px; top: 105px; visibility:hidden;z-index:100;}
+#guidelinesPop {position:absolute; left: 159px; top: 127px; visibility:hidden;z-index:100;}
+#printPop {position:absolute; left: 159px; top: 149px; visibility:hidden;z-index:100;}
+#electronicPop {position:absolute; left: 169px; top: 171px; visibility:hidden;z-index:100;}
+#contentPop {position:absolute; left: 159px; top: 193px; visibility:hidden;z-index:100;}
+#photographyPop {position:absolute; left: 169px; top: 215px; visibility:hidden;z-index:100;}
+#promotionalPop {position:absolute; left: 159px; top: 237px; visibility:hidden;z-index:100;}
+#tradeshowsPop {position:absolute; left: 159px; top: 259px; visibility:hidden;z-index:100;}
+#alliancesPop {position:absolute; left: 159px; top: 281px; visibility:hidden;z-index:100;}
+
+/* For CSC descretionary pages only */
+.cookies 				{ color:#000000; font-size:9px; font-family:verdana,arial}
+a.cookieLinks:link 		{ color:#003366; text-decoration:underline; font-size:9px; font-family:verdana,arial}
+a.cookieLinks:visited 	{ color:#003366; text-decoration:underline; font-size:9px; font-family:verdana,arial}
+a.cookieLinks:hover 	{ color:#003366; text-decoration:underline; font-size:9px; font-family:verdana,arial}
+
+P {
+	FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+P.heading {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; MARGIN: 4px 6px; COLOR: #ffffff
+}
+P.text {
+	MARGIN: 4px 6px
+}
+P.globalH {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; MARGIN: 0px 6px 2px 16px; COLOR: #ffff99
+}
+P.global {
+	MARGIN: 0px 16px 5px
+}
+P.globalT {
+	FONT-SIZE: 10px; MARGIN: 0px 6px 5px 16px; COLOR: #000000; LINE-HEIGHT: 12px
+}
+P.topNav {
+	MARGIN: 0px 6px; COLOR: #ffffff
+}
+A.tNav:link {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: none
+}
+A.tNav:visited {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: none
+}
+A.tNav:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: underline
+}
+A.head1:link {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default; TEXT-DECORATION: none
+}
+A.head1:visited {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default; TEXT-DECORATION: none
+}
+A.head1:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default; TEXT-DECORATION: underline
+}
+A.head2:link {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: none
+}
+A.head2:visited {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: none
+}
+A.head2:hover {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffffff; FONT-FAMILY: verdana,arial; TEXT-DECORATION: underline
+}
+A.more:link {
+	FONT-SIZE: 10px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+A.more:visited {
+	FONT-SIZE: 10px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+TD.pipe {
+	FONT-WEIGHT: bold; FONT-SIZE: 10px; COLOR: #ffffff; FONT-FAMILY: verdana,arial
+}
+.globalH {
+	FONT-WEIGHT: bold; FONT-SIZE: 11px; COLOR: #ffff99; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+.globalT {
+	FONT-SIZE: 10px; COLOR: #000000; LINE-HEIGHT: 12px; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+.copyr {
+	FONT-SIZE: 10px; COLOR: #003399; FONT-FAMILY: verdana, arial, helvetica, universe, ms sans, default sans, default
+}
+#countryDiv {
+	LEFT: 154px; VISIBILITY: hidden; POSITION: absolute; TOP: 80px
+}

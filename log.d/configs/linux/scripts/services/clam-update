@@ -1,0 +1,256 @@
+#!/usr/bin/perl -w
+##########################################################################
+## $Id: clam-update,v 1.6 2004/06/21 14:59:05 kirk Exp $
+###########################################################################
+#########################################################################
+# clam-update script for Logwatch
+# Analyzes the Clam Anti-Virus update log
+#
+# Version: 1.0.0
+#    Initial release
+# Version: 1.0.1
+#    Add support for pre-0.65 database
+#
+# Written by: Lars Skjærlund <lars@skjaerlund.dk>
+#########################################################################
+
+#########################################################################
+# This script is subject to the same copyright as Logwatch itself
+#########################################################################
+
+#########################################################################
+# Files - all shown with default paths:
+#
+# /etc/log.d/conf/logfiles/clam-update.conf
+# /etc/log.d/conf/services/clam-update.conf
+# /etc/log.d/scripts/services/clam-update (this file)
+#
+# ... and of course
+#
+# /var/log/clam-update
+#########################################################################
+
+#########################################################################
+# Important note:
+#
+# Under normal operation - ie. a detail level of 'lo' (0), no output will
+# be produced if no updates have taken place. However, if no update 
+# attempt has been done, an alert will be output to inform you about this
+# (which probably means that freshclam isn't running).
+# 
+# If you have stopped using ClamAV and would like to get rid of the 
+# alert, you should delete the logfile. If there's no logfile, no alerts
+# will be output - but if Logwatch finds a logfile and no update attempts
+# have been made for whatever timeperiod Logwatch is analyzing, an alert
+# will be output.
+#########################################################################
+
+use strict;
+
+use POSIX qw(strftime);
+
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+
+my $time          = time;
+my $Date;
+my $SearchDate;
+my $InRange       = 0;
+
+### Variables for new database format (ClamAV > 0.60)
+
+my $MainUptodate  = undef;
+my $MainUpdated   = undef;
+my $DailyUptodate = undef;
+my $DailyUpdated  = undef;
+my $Updated       = undef;
+
+### Variables for old database format (ClamAV <= 0.60)
+
+my $DBUptodate    = undef;
+my $DBUpdated     = undef;
+my $DB2Uptodate   = undef;
+my $DB2Updated    = undef;
+
+my $bDBUptodate      = 0;
+my $bDB2Uptodate     = 0;
+my $NotificationOK   = 0;
+
+my %Errors;
+my %Unmatched;
+
+my $range = $ENV{'LOGWATCH_DATE_RANGE'} || 'all';
+
+if ($range eq 'yesterday') {
+   $SearchDate = strftime("%b %e", localtime($time-86400));
+} elsif ($range eq 'today') {
+   $SearchDate = strftime("%b %e", localtime($time));
+} elsif ($range eq 'all') {
+   $SearchDate = '... ..';
+}
+
+while (defined(my $ThisLine = <STDIN>)) {
+   if (($ThisLine =~ /^\s*$/) or
+       ($ThisLine =~ /^----------/)
+   ) {
+      # Do nothing
+   } elsif (($Date) = ($ThisLine =~ /(\w\w\w [\d ]\d) ..:..:../)) {
+      $bDBUptodate  = 0;
+      $bDB2Uptodate = 0;
+      if ($Date =~ $SearchDate) {
+         $InRange = 1;
+      } else {
+         $InRange = 0;
+      }
+   } elsif ($InRange == 1) {
+      chomp($ThisLine);
+      if ($ThisLine =~ /^main.cvd is up to date/) {
+         $MainUptodate = $ThisLine;
+      } elsif ($ThisLine =~ /^daily.cvd is up to date/) {
+         $DailyUptodate = $ThisLine;
+      } elsif ($ThisLine =~ /^main.cvd updated/) {
+         $MainUpdated = $ThisLine;
+      } elsif ($ThisLine =~ /^daily.cvd updated/) {
+         $DailyUpdated = $ThisLine;
+      } elsif ($ThisLine =~ /^Database updated \(\d* signatures\)/) {
+         $Updated = $ThisLine;
+      } elsif ((my $Text) = ($ThisLine =~ /^Database updated \((containing .*)\)./)) {
+         if ($bDBUptodate == 0) {
+            $DBUpdated = $Text;
+         } elsif ($bDB2Uptodate == 0) {
+            $DB2Updated = $Text;
+         } else {
+            $Unmatched{$ThisLine}++;
+         }
+      } elsif (($Text) = ($ThisLine =~ /^Database updated from (.*).$/)) {
+         $Updated = $Text;
+      } elsif ($ThisLine =~ /^viruses\.db is up to date/) {
+         $bDBUptodate  = 1;
+         $DBUptodate   = $ThisLine;
+      } elsif ($ThisLine =~ /^viruses\.db2 is up to date/) {
+         $bDB2Uptodate = 1;
+         $DB2Uptodate  = $ThisLine;
+      } elsif ($ThisLine =~ /^Clamd successfully notified about the update./) {
+         $NotificationOK++;
+      } elsif (($Text) = ($ThisLine =~ /^ERROR: (.*)/)) {
+         $Errors{$Text}++;
+      } else {
+         $Unmatched{$ThisLine}++;
+      }
+   } else {
+      if (($ThisLine =~ /^main.cvd is up to date/) or
+          ($ThisLine =~ /^daily.cvd is up to date/) or
+          ($ThisLine =~ /^viruses.db is up to date/) or
+          ($ThisLine =~ /^viruses.db2 is up to date/) or
+          ($ThisLine =~ /^main.cvd updated/) or
+          ($ThisLine =~ /^daily.cvd updated/) or
+          ($ThisLine =~ /^Database updated/) or
+          ($ThisLine =~ /^ERROR: /)) {
+         #
+      } else {
+         chomp($ThisLine);
+         $Unmatched{$ThisLine}++;
+      }
+   }
+}
+
+
+#####################################################################
+# This should not be necessary since a header will be inserted by the
+# main logwatch program if output is genereated - Kirk
+#if (($Detail >= 5) or ($MainUpdated or $DailyUpdated or $DBUpdated or $DB2Updated) or (!$MainUptodate and !$DailyUptodate and !$DBUptodate and !$DB2Uptodate)) {
+#   print "ClamAV database:\n";
+#}
+
+if ($MainUpdated) {
+   (my $Text, my $Version) = ($MainUpdated =~ /(.*) \((.*)\)/);
+   print "   $Text\n";
+   if ($Detail >= 10) {
+      print "      $Version\n";
+   }
+} else {
+   if (($MainUptodate) and ($Detail >= 5)) {
+      (my $Text, my $Version) = ($MainUptodate =~ /(.*) \((.*)\)/);
+      print "   $Text\n";
+      if ($Detail >= 10) {
+         print "      $Version\n";
+      }
+   }
+}
+
+if ($DailyUpdated) {
+   (my $Text, my $Version) = ($DailyUpdated =~ /(.*) \((.*)\)/);
+   print "   $Text\n";
+   if ($Detail >= 10) {
+      print "      $Version\n";
+   }
+} else {
+   if (($DailyUptodate) and ($Detail >= 5)) {
+      (my $Text, my $Version) = ($DailyUptodate =~ /(.*) \((.*)\)/);
+      print "   $Text\n";
+      if ($Detail >= 10) {
+         print "      $Version\n";
+      }
+   }
+}
+
+if ($DBUpdated) {
+   print "   viruses.db updated\n";
+   if ($Detail >= 10) {
+      print "      Now $DBUpdated\n";
+   }
+} else {
+   if (($DBUptodate) and ($Detail >= 5)) {
+      print "   $DBUptodate\n";
+   }
+}
+
+if ($DB2Updated) {
+   print "   viruses.db2 updated\n";
+   if ($Detail >= 10) {
+      print "      Now $DB2Updated\n";
+   }
+} else {
+   if (($DB2Uptodate) and ($Detail >= 5)) {
+      print "   $DB2Uptodate\n";
+   }
+}
+
+if ($NotificationOK > 0) {
+   print "Clamd successfully notified about the update $NotificationOK Time(s).\n";
+} elsif (($MainUpdated or $DailyUpdated) and ($NotificationOK > 0)) {
+   print "WARNING\n";
+   print "Databases are updated, but Clamd is not notified.\n";
+}
+
+if (($Updated) and ($Detail >= 10)) {
+   if ($Updated =~ /^(\w* \w*) \(\d* \w*\)/) {
+      (my $Text, my $From) = ($Updated =~ /^(\w* \w*) \(\d* \w*\) (.*)\./);
+      print "   $Text $From\n";
+   } else {
+      print "   Updated from $Updated\n";
+   }
+};
+
+if (!$MainUptodate and !$MainUpdated and 
+    !$DailyUptodate and !$DailyUpdated and
+    !$DBUptodate and !$DB2Uptodate) {
+   print "   WARNING: Database has not been checked for updates\n";
+}
+
+if (keys %Errors) {
+   print "\nERRORS:\n";
+   foreach my $Text (keys %Errors) {
+      print "   $Text: $Errors{$Text} Time(s)\n";
+   }
+}
+
+if (keys %Unmatched) {
+   print "\n**Unmatched Entries**\n";
+   foreach my $Text (keys %Unmatched) {
+      print "   $Text: $Unmatched{$Text} Time(s)\n";
+   }
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 et

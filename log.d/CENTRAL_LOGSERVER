@@ -1,0 +1,33 @@
+Centralised logserver scripts
+
+Johan Allard, CSC Australia 2004-08-27, jallard2@csc.com.au
+
+About
+=====
+These scripts tie logwatch together with PostgreSQL to generate summary
+information that will be stored in the database from syslog data stored in
+the database.
+
+Running the script
+==================
+To run the script type /etc/log.d/bin/parselog.sh systemname datespec
+systemname: the name of the system to parse logdata from, ex: clf
+datespec: the datespec is a dateformat that PostgreSQL understands, or you
+can use the keywords today, yesterday or all. If omitted, all is used.
+
+How the script works
+====================
+The script will take the syslog data from the database (for the specified
+host and for the specified datespec) and put it in
+/var/tmp/var/log. The logwatch script is then run and the output is then
+stored in the database in the syslog_tsummary table. The output in
+/var/tmp/var/log is then deleted.
+
+Adding a new host type
+======================
+The only specified host type, as of this writing, is linux. To add, say
+solaris, add a row in the syslog_tpremadetype for "Solaris Host" with the
+logwatch_cmd set to solaris. Then copy the contents from
+/etc/log.d/configs/linux to /etc/log.d/configs/solaris and edit the contents
+of the directories below /etc/log.d/configs/solaris to match what you want
+to look for in the solaris logfiles.

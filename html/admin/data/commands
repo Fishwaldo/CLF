@@ -1,0 +1,33 @@
+CREATE TABLE SecFrame_TQueue (
+  TQueue_ID integer DEFAULT nextval('TQueue_Seq'),
+  TQueue_Command varchar(16) NOT NULL,
+  TQueue_Date date NOT NULL,
+  TQueue_Time time NOT NULL,
+  TQueue_DateProcessed date,
+  TQueue_TimeProcessed time,
+  TQueue_Processed integer,
+  TQueue_Data1 text,
+  TQueue_Data2 text
+)\g
+
+
+Commands:
+
+adduser
+	data1:  username
+
+deluser
+	data1:  username
+
+moduser
+	data1:  current username
+	data2:  new username
+
+changepass
+	data1:  newpassword
+
+
+TQueue_Processed:
+	0:  not processed
+	1:  done
+	2:  aborted

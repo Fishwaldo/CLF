@@ -1,0 +1,10 @@
+$Id$
+
+1.  cat pgsql.secframe | psql -Upostgres securityframework
+2.  createdb TSyslog
+3.  cat pgsql.msyslog | psql -Upostgres TSyslog 
+4.  adjust php.ini
+	sendmail_path = /usr/sbin/sendmail -i -t -fmailfromsmac@yourdomain.com
+	max_execution_time = 295
+	memory_limit = 16M
+5.  put the .htaccess file into the correct directory

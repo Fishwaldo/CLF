@@ -1,0 +1,24 @@
+#$Id$
+
+#batch process logs every five minutes
+0,5,10,15,20,25,30,35,40,45,50,55 * * * * /opt/apache/htdocs/login/smt/scripts/bin/processlogs
+
+#Full-vacuum the TSyslog table if it is less than 10 megs in size or vacuum if the table is 20 megs or less
+3,8,13,18,23,28,33,38,43,48,53,58 * * * * /opt/apache/htdocs/login/smt/scripts/bin/autovac
+
+#expire old logs once a day
+6 0 * * * /opt/apache/htdocs/login/smt/scripts/bin/expirelogs
+
+#check for hosts who log to this box but are not setup
+2 23 * * * /opt/apache/htdocs/login/smt/scripts/bin/nightlyroguecheck
+
+#re-optimize the db at 4am, this recovers deleted space but leaves it allocated on the disk
+#2 1 * * * /opt/apache/htdocs/login/smt/scripts/bin/vacuumdb
+2 3 * * * /opt/apache/htdocs/login/smt/scripts/bin/vacuumdb
+
+#rebuild & clean up all indexes at 3am sunday morning
+3 3 * * sun /opt/apache/htdocs/login/smt/scripts/bin/weeklyindexrebuild
+
+#every hour re-analyze the whole DB
+59 * * * * /opt/apache/htdocs/login/smt/scripts/bin/analyze
+

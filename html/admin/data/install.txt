@@ -1,0 +1,5 @@
+Simple list for installing Security Framework.
+
+1.  Create the db, securityframework
+2.  cat pgsql.framework | psql securityframework
+3.  Adjust passwords as necessary

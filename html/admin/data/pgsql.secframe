@@ -1,0 +1,113 @@
+CREATE SEQUENCE TQueue_Seq\g
+CREATE TABLE SecFrame_TQueue (
+  TQueue_ID integer DEFAULT nextval('TQueue_Seq'),
+  TQueue_Command varchar(16) NOT NULL,
+  TQueue_Date date NOT NULL,
+  TQueue_Time time NOT NULL,
+  TQueue_DateProcessed date,
+  TQueue_TimeProcessed time,
+  TQueue_Processed integer,
+  TQueue_Data1 text,
+  TQueue_Data2 text
+)\g
+CREATE UNIQUE INDEX TQueue_ID_Idx on SecFrame_TQueue (TQueue_ID)\g 
+CREATE INDEX TQueue_Command_Idx on SecFrame_TQueue (TQueue_Command)\g 
+grant all on TQueue_Seq to secframe\g
+grant all on SecFrame_TQueue to secframe\g
+
+CREATE SEQUENCE TLogin_Seq\g
+CREATE TABLE SecFrame_TLogin (
+  TLogin_ID integer DEFAULT nextval('TLogin_Seq'),
+  TLogin_Username varchar(128) NOT NULL,
+  TLogin_Password varchar(32) NOT NULL,
+  TLogin_Name varchar(40) NOT NULL,    
+  TLogin_Email varchar(40) NOT NULL,
+  TLogin_Home varchar(20),
+  TLogin_Work varchar(20),
+  TLogin_Cell varchar(20),
+  TLogin_Pager varchar(20),
+  TLogin_Address1 varchar(40),
+  TLogin_Address2 varchar(40),
+  TLogin_City varchar(40),    
+  TLogin_State varchar(2),
+  TLogin_Zip varchar(12)                         
+) \g
+CREATE UNIQUE INDEX TLogin_ID_Idx on SecFrame_TLogin (TLogin_ID)\g
+CREATE UNIQUE INDEX TLogin_Username_Idx on SecFrame_TLogin (TLogin_Username)\g
+grant all on TLogin_Seq to secframe\g
+grant all on SecFrame_TLogin to secframe\g
+insert into SecFrame_TLogin (TLogin_Username,TLogin_Password,TLogin_Name,TLogin_Email,TLogin_Home,TLogin_Work,TLogin_Cell,TLogin_Pager,TLogin_Address1,TLogin_Address2,TLogin_City,TLogin_State,TLogin_Zip) values ('sample','password','Sample User','samplemail@yahoo.com','','','','','','','','','')\g
+insert into SecFrame_TLogin (TLogin_Username,TLogin_Password,TLogin_Name,TLogin_Email,TLogin_Home,TLogin_Work,TLogin_Cell,TLogin_Pager,TLogin_Address1,TLogin_Address2,TLogin_City,TLogin_State,TLogin_Zip) values ('noc','password','NOC User','root@localhost','','','','','','','','','')\g
+insert into SecFrame_TLogin (TLogin_Username,TLogin_Password,TLogin_Name,TLogin_Email,TLogin_Home,TLogin_Work,TLogin_Cell,TLogin_Pager,TLogin_Address1,TLogin_Address2,TLogin_City,TLogin_State,TLogin_Zip) values ('msyslog','password','msyslog User','root@localhost','','','','','','','','','')\g
+
+CREATE SEQUENCE TGroup_Seq\g
+CREATE TABLE SecFrame_TGroup (
+  TGroup_ID integer DEFAULT nextval('TGroup_Seq'),
+  TGroup_Name varchar(30) NOT NULL,
+  TGroup_Desc varchar(80) NOT NULL
+) \g
+CREATE UNIQUE INDEX TGroup_ID_Idx on SecFrame_TGroup (TGroup_ID)\g
+grant all on TGroup_Seq to secframe\g
+grant all on SecFrame_TGroup to secframe\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Everyone','All Users')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Administrators','System Administrators')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Normal Users','Standard System Users')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Customer','Customers of Syslog System')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Analyst','NOC Analyst')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Administrators','Syslog Adminstrator')\g
+insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog msyslog','Syslog Processor')\g
+
+CREATE SEQUENCE TGroupMembers_Seq\g
+CREATE TABLE SecFrame_TGroupMembers (
+  TGroupMembers_ID integer DEFAULT nextval('TGroupMembers_Seq'),
+  TLogin_ID integer not null,
+  TGroup_ID integer not null
+) \g
+CREATE UNIQUE INDEX TGroupMembers_ID_Idx on SecFrame_TGroupMembers (TGroupMembers_ID)\g
+grant all on TGroupMembers_Seq to secframe\g
+grant all on SecFrame_TGroupMembers to secframe\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (1,1)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (2,1)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (3,1)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (6,1)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (1,2)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (3,2)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (5,2)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (1,3)\g
+insert into SecFrame_TGroupMembers (TGroup_ID,TLogin_ID) values (7,3)\g
+
+CREATE SEQUENCE TApp_Seq\g
+CREATE TABLE SecFrame_TApp (
+  TApp_ID integer DEFAULT nextval('TApp_Seq'),
+  TApp_Name varchar(30) NOT NULL,
+  TApp_Desc varchar(80) NOT NULL
+) \g
+CREATE UNIQUE INDEX TApp_ID_Idx on SecFrame_TApp (TApp_ID)\g
+grant all on TApp_Seq to secframe\g
+grant all on SecFrame_TApp to secframe\g
+insert into SecFrame_TApp (TApp_Name,TApp_Desc) values ('Administrators','Administrators Access-List')\g
+
+insert into SecFrame_TApp (TApp_Name,TApp_Desc) values ('SyslogOp','Syslog Access-List')\g
+
+CREATE SEQUENCE TAppPerm_Seq\g
+CREATE TABLE SecFrame_TAppPerm (
+  TAppPerm_ID integer DEFAULT nextval('TAppPerm_Seq'),
+  TAppPerm_UserGroup integer not null,
+  TAppPerm_UGID integer not null,
+  TAppPerm_AllowAccess integer not null,
+  TAppPerm_Priority integer not null,
+  TApp_ID integer not null
+) \g
+CREATE UNIQUE INDEX TAppPerm_ID_Idx on SecFrame_TAppPerm (TAppPerm_ID)\g
+CREATE INDEX TAppPerm_UserGroup_Idx on SecFrame_TAppPerm (TAppPerm_UserGroup)\g
+CREATE INDEX TAppPerm_UGID_Idx on SecFrame_TAppPerm (TAppPerm_UGID)\g
+CREATE INDEX TAppPerm_AllowAccess_Idx on SecFrame_TAppPerm (TAppPerm_AllowAccess)\g
+CREATE INDEX TAppPerm_TApp_ID_Idx on SecFrame_TAppPerm (TApp_ID)\g
+grant all on TAppPerm_Seq to secframe\g
+grant all on SecFrame_TAppPerm to secframe\g
+
+insert into SecFrame_TAppPerm (TAppPerm_UserGroup,TAppPerm_UGID,TAppPerm_AllowAccess,TAppPerm_Priority,TApp_ID) values (2,1,0,1,2);
+insert into SecFrame_TAppPerm (TAppPerm_UserGroup,TAppPerm_UGID,TAppPerm_AllowAccess,TAppPerm_Priority,TApp_ID) values (2,6,1,2,2);
+insert into SecFrame_TAppPerm (TAppPerm_UserGroup,TAppPerm_UGID,TAppPerm_AllowAccess,TAppPerm_Priority,TApp_ID) values (2,5,1,3,2);
+insert into SecFrame_TAppPerm (TAppPerm_UserGroup,TAppPerm_UGID,TAppPerm_AllowAccess,TAppPerm_Priority,TApp_ID) values (2,4,1,4,2);
+insert into SecFrame_TAppPerm (TAppPerm_UserGroup,TAppPerm_UGID,TAppPerm_AllowAccess,TAppPerm_Priority,TApp_ID) values (2,7,1,5,2);

@@ -1,0 +1,23 @@
+	AuthName "System Login"
+	AuthType basic
+
+	Auth_PG_host 127.0.0.1
+	Auth_PG_port 5432
+	Auth_PG_user secframe
+	Auth_PG_pwd voQ3jV1x
+        Auth_PG_encrypted on
+        Auth_PG_hash_type MD5
+	Auth_PG_nopasswd off
+	Auth_PG_database securityframework
+	Auth_PG_pwd_table SecFrame_TLogin
+	Auth_PG_uid_field TLogin_Username
+	Auth_PG_pwd_field TLogin_Password
+	<LIMIT GET POST>
+		require valid-user
+	</LIMIT>
+#Deny from all 
+#AuthType Basic 
+#AuthUserFile /usr/apache/conf/.htpass
+#AuthName "System Login" 
+#Require valid-user 
+#Satisfy any 

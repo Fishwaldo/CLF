@@ -1,0 +1,44 @@
+Things to add:
+
+Things Broken:
+1.  Deleting stuff sometimes barks about failing but doesn't really fail
+
+12/19/2003
+	-  changed software to use /opt/apache instead of /usr/apache
+
+8/18/2003
+	-  changed software to support http via ports > than 443
+
+8/13/2003
+	-  Updated generalweb.php to use urlencode.php
+
+8/10/2003
+	-  SecFrame now uses md5 passwords!
+
+1/15/2003
+	-  Updated password support to check for minimum length as well as a mixed case or single-case + symbols password
+	-  Added md5pass.php from http://limonez.net/~jure/php/ to the package.  Will use it to sync passwords to shadow
+
+1/14/2003
+	-  Updated to include Secframe_TQueue table for adding/deleting users + changing passwords, other functions to come
+
+1/13/2003
+	-  Updated to include msyslog application in ACL
+	-  Now includes three users:  msyslog, noc, and sample
+	-  Users are setup to default in msyslog application.
+
+1/12/2003
+	-  Included .htaccess file for mod_auth_pgsql
+
+8/26/2002
+	-  Stripped out debug code from generalweb.php
+
+8/8/2002
+	-  fixed calls in .php files to /usr/apache/htdocs/inst, instead of /usr/apache/htdocs/login
+
+7/24/2002
+	-  Integrated interface into SMT
+	-  Cleaned up interfaces to be more fluid
+	-  Main interface(index.php) no longer has click-on links for add users, all functions are button drive
+	-  Delete page slimmed down to only allow optional deletion of syslog messages
+

@@ -1,0 +1,19 @@
+#!/bin/sh
+##########################################################################
+# $Id: zz-fortune,v 1.8 2003/12/15 18:09:24 kirk Exp $
+##########################################################################
+# Named 'zz-fortune' so that it will be the last to execute...
+
+if [ "$PRINTING" = "y" ] ; then
+   if [ -x /usr/games/fortune ] ; then
+      echo
+      echo
+      echo "------------------ Fortune --------------------"
+      echo
+      /usr/games/fortune
+      echo
+   fi
+fi
+
+# vi: shiftwidth=3 tabstop=3 et
+

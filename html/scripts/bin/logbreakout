@@ -1,0 +1,8 @@
+#!/bin/tcsh
+#$Id$
+set hosts=`cat $1 | tr -s " " "\t" | cut -f4 | sort -u`
+foreach host ( $hosts )
+        echo -n "Host:  $host  "
+        set results=`egrep " $host " $1 | wc | tr -s " " "\t" | cut -f 2,4`
+        echo "Lines:  $results[1]  Bytes:   $results[2]"
+end

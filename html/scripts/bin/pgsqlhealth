@@ -1,0 +1,7 @@
+#!/bin/tcsh
+#$Id$
+set file=/tmp/pgsqlhealthcheck.$$
+pgsqllogin >& $file 
+set results=`grep ^'TSyslog=>' $file | wc -l | tr -s " " "\t" | cut -f2`
+echo $results
+rm -f $file

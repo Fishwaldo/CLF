@@ -1,0 +1,5 @@
+#!/bin/tcsh
+#$Id$
+set file=`ls -t /tmp/webresults.html.* | tail -n 1`
+setenv REMOTE_USER msyslog
+/opt/apache/htdocs/login/smt/scripts/php/autovac.php >& $file

@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+##################################################################
+#
+# clamav script ver. 0.23 for Logwatch.
+#
+# Written by S. Schimkat <www.schimkat.dk>.
+#
+# Find latest version here: www.schimkat.dk/clamav
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+##################################################################
+$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+
+while (defined($ThisLine = <STDIN>)) {
+   if (( $ThisLine =~ /^clamfi_abort/ ) or 
+       ( $ThisLine =~ /^clamfi_connect: not scanning outgoing messages/ ) or
+       ( $ThisLine =~ /^Quarantined infected mail as/ )) {
+          # We do not care about these.
+   } elsif (($ThisLine =~ /clean message from/)) {
+      $CleanMessage++;
+   } elsif (($ThisLine =~ /Intercepted virus/)) {
+      $InfectedMessage++;
+   } elsif ((($Virus) = ($ThisLine =~ /^stream: (.*?) FOUND/i )) or (($Virus) = ($ThisLine =~ /^.+?msg\.\w+?: (.*?) FOUND/i ))) {
+      $VirusList{$Virus}++;
+   } elsif (($MailHost) = ($ThisLine =~ /^clamfi_connect: connection from (.*?)\n/i )) {
+      $MailHostList{$MailHost}++;
+   } elsif (($Version) = ($ThisLine =~ /^clamdscan \/ (.*?)\n/i )) {
+      $DaemonStart{$Version}++;
+   } elsif (($ClamdVersion, $MilterVersion) = ($ThisLine =~ /^ClamAV version \'clamd \/ ClamAV version (.*?)\', clamav-milter version \'(.*?)\'\n/i )) {
+      $Version = 'Clamd ver. ' . $ClamdVersion . ' / Clmilter ver. ' . $MilterVersion; 
+      $DaemonStart{$Version}++;
+   } else {
+      # Comment the following line out if using verbose logging.
+      # Note that doing that will result in not displaying the extra log.
+      push @OtherList,$ThisLine;
+   }
+}
+
+if ($CleanMessage) {
+   print "\nClean messages: ". $CleanMessage." Message(s)\n";
+}
+
+if ($InfectedMessage) {
+   print "\nInfected messages: ". $InfectedMessage." Message(s)\n";
+}
+
+if ((keys %VirusList)) {
+   print "\nVirus list:\n";
+   foreach $Virus (sort {$a cmp $b} keys %VirusList) {
+      print '   ' . $Virus . " - ". $VirusList{$Virus} . " Time(s)\n";
+   }
+}
+
+if ((keys %MailHostList) and ($Detail >= 5)) {
+   print "\nHost list:\n";
+   foreach $MailHost (sort {$a cmp $b} keys %MailHostList) {
+      print '   ' . $MailHost . " - ". $MailHostList{$MailHost} . " Time(s)\n";
+   }
+}
+
+if ((keys %DaemonStart) and ($Detail >= 5)) {
+   print "\nAntivirus daemon:\n";
+   foreach $Version (sort {$a cmp $b} keys %DaemonStart) {
+      print '   ' . $Version . ' started: '. $DaemonStart{$Version} . " Time(s)\n";
+   }
+}
+
+if (($#OtherList >= 0) and (not $IngoreUnmatched)){
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);

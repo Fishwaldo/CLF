@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+#$Id$
+spawn su - postgres -c "/usr/pgsql/bin/psql -U msyslog TSyslog"
+expect assword 
+send "31xrmfOH\n"
+expect "TSyslog=>"
+send "\q"

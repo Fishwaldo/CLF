@@ -1,0 +1,644 @@
+#!/usr/bin/perl -w
+##########################################################################
+# $Id: postfix,v 1.12 2004/06/21 14:59:05 kirk Exp $
+##########################################################################
+# $Log: postfix,v $
+# Revision 1.12  2004/06/21 14:59:05  kirk
+# Added tons of patches from Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+# Thanks, as always!
+#
+# Revision 1.11  2004/06/21 13:42:02  kirk
+# From: Matthew Wise <matt@oatsystems.com>
+# This is more of a suggestion than a true patch submission. On a busy
+# postfix server the messages sent by section is really long and not
+# helpful. This patch finds and lists the top 10 senders by bumber of
+# messages.
+#
+# Revision 1.10  2004/06/21 13:41:04  kirk
+# Patch from rod@nayfield.com
+#
+# Revision 1.9.1 2004/02/22 16:44:01 rod
+# Added patch from rod@nayfield.com
+#
+# Revision 1.9  2004/02/03 03:25:02  kirk
+# Added patch from quien-sabe@metaorg.com
+#
+# Revision 1.8  2004/02/03 02:45:26  kirk
+# Tons of patches, and new 'oidentd' and 'shaperd' filters from
+# Pawe? Go?aszewski" <blues@ds.pg.gda.pl>
+#
+# Revision 1.7  2003/12/15 18:35:03  kirk
+# Tons of patches from blues@ds.pg.gda.pl
+#
+# Revision 1.6  2003/12/15 18:09:23  kirk
+# Added standard vi formatting commands at the bottom of all files.
+# Applied many patches from blues@ds.pg.gda.pl
+#
+# Revision 1.5  2003/12/15 17:45:09  kirk
+# Added clamAV update log filter from lars@spinn.dk
+#
+# Revision 1.4  2003/11/26 14:36:30  kirk
+# Applied patch from blues@ds.pg.gda.pl
+#
+# Revision 1.3  2003/11/18 14:04:05  kirk
+# More patches from blues@ds.pg.gda.pl
+#
+# Revision 1.2  2003/11/18 04:02:21  kirk
+# Patch from blues@ds.pg.gda.pl
+#
+# Revision 1.1  2003/11/03 04:49:18  kirk
+# Added postfix filter from Sven Conrad <sconrad@receptec.net>
+#
+# Revision 1.1  2002/03/29 15:32:14  kirk
+# Added some filters found in RH's release
+#
+#
+# Revision ???  2000/07/12 Simon Liddington <sjl@zepler.org>
+# converted from sendmail to postfix Sven Conrad <scon@gmx.net>
+# added unknown users
+# added relay denials
+# todo:
+# add authentication warnings
+# add forward errors
+# add returns after 4 hours
+# ignores alias database building
+# ignores daemon start messages
+# ignores clone messages
+# ignores all to= lines whatever follows stat=
+#
+#
+# Revision 1.1  2003/03/21 21:10  sven
+# Initial revision
+#
+# filters all postfix/<process> messages
+#
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    ??? Kenneth Porter <shiva@well.com> ???
+#    changed by Sven Conrad <scon@gmx.net>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to ?? shiva@well.com.??
+#    Sven Conrad <scon@gmx.net>
+#
+########################################################
+
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+
+$MsgsSent = 0;
+$BytesTransferred = 0;
+$FourHourReturns = 0;
+$ReturnedToSender = 0;
+$ResentMessages = 0;
+$RemovedFromQueue = 0;
+$UnsupportedFamily = 0;
+$TableChanged = 0;
+$QueueSizeExceeded = 0;
+$RejectedRBL = 0;
+$ErrorRBL = 0;
+$NoFreeSpace = 0;
+$RejectClients = 0;
+
+while (defined($ThisLine = <STDIN>)) {
+   if ( 
+      ( $ThisLine =~ m/^connect/ ) or 
+      ( $ThisLine =~ m/^disconnect/ ) or 
+      ( $ThisLine =~ m/^reload configuration/ ) or 
+      ( $ThisLine =~ m/^[a-zA-Z0-9]+: client=([^ ]*\[[^ ]*\])$/ ) or 
+      ( $ThisLine =~ m/^[a-zA-Z0-9]+: message-id/ ) or
+      ( $ThisLine =~ m/^[a-zA-Z0-9]+: skipped, still being delivered/ ) or
+      ( $ThisLine =~ m/^warning: [\.0-9]+: address not listed for hostname/ ) or
+      ( $ThisLine =~ m/^[a-zA-Z0-9]+: to\=\<.*>, relay\=.*, delay\=[0-9]+, status\=(sent|deferred)/ ) or
+      ( $ThisLine =~ m/^warning: [\.0-9]+: hostname .* verification failed: Host not found/ ) or
+      ( $ThisLine =~ m/^warning: no MX host for .* has a valid A record$/ ) or
+      ( $ThisLine =~ m/^warning: numeric domain name in resource data of MX record for .*$/ ) or
+      ( $ThisLine =~ m/^daemon started$/ ) or
+      ( $ThisLine =~ m/^terminating on signal 15$/ ) or
+      ( $ThisLine =~ m/^warning: Mail system is down -- accessing queue directly$/ ) or
+      ( $ThisLine =~ m/^Deleted: \d message$/ ) or
+      ( $ThisLine =~ m/^warning: [a-zA-Z0-9]+: skipping further client input$/ ) or
+      ( $ThisLine =~ m/^warning: premature end-of-input from cleanup socket while reading input attribute name$/ ) or
+      ( $ThisLine =~ m/^warning: uid=\d: Broken pipe$/ ) or
+      ( $ThisLine =~ m/^warning: SASL authentication failure: no secret in database$/ ) or
+      ( $ThisLine =~ m/^warning: SASL authentication failure: Password verification failed$/ ) or
+      ( $ThisLine =~ m/^setting up TLS connection (from|to)/ ) or
+      ( $ThisLine =~ m/^SSL_accept error from/ ) or
+      ( $ThisLine =~ m/^verify error:num=/ ) or
+      ( $ThisLine =~ m/^Peer verification:/ ) or
+      ( $ThisLine =~ m/^Peer certificate could not be verified$/ ) or
+      ( $ThisLine =~ m/^Peer certficate could not be verified$/ ) #postfix typo
+   ) {
+      # We don't care about these
+   } elsif ( ($Bytes) = ($ThisLine =~ /^[a-zA-Z0-9]+: from=.*size=([0-9]+).*$/) ) {
+      $MsgsSent++;
+      $BytesTransferred += $Bytes;
+   } elsif (($User) = ($ThisLine =~ /^[a-zA-Z0-9]+: to\=\<([^ ]*)>, relay\=local, delay\=-?[0-9]+, status\=bounced \(unknown user/)) {
+      # unknown user
+      $UnknownUsers{$User}++;
+   } elsif (($User) = ($ThisLine =~ /^[a-zA-Z0-9]+: to\=\<([^ ]*)>, relay\=local, delay\=[0-9]+, status\=bounced \(user unknown/)) {
+      # unknown user ( alias to |"exit 67" in aliases table )
+      $UnknownUsers{$User}++;
+   } elsif ((undef,$User) = ($ThisLine =~ /^[a-zA-Z0-9]+: reject: RCPT from ([^ ]*): [0-9]+ <([^ ]*)>: User unknown in virtual mailbox table;/)) {
+      # unknown virtual user
+      $UnknownUsers{$User}++;
+   } elsif (($User) = ($ThisLine =~ /^[a-zA-Z0-9]+: to\=\<([^ ]*)>, .*, status\=bounced .*: User unknown in virtual mailbox table/)) {
+      # another unknown user probably could combine with local unknown but again my perl is weak
+      $UnknownUsers{$User}++;
+   } elsif ((undef,$User) = ($ThisLine =~ /^[a-zA-Z0-9]+: reject: RCPT from ([^ ]*): [0-9]+ <([^ ]*)>.*: User unknown in local recipient table/)) {
+      # and yet another unknown user probably
+      $UnknownUsers{$User}++;
+   } elsif (($Dest, $Relay, $Msg) = ($ThisLine =~ /^[a-zA-Z0-9]+: to\=\<([^ ]*)>, relay=([^ ]*).*, delay\=-?[0-9]+, status\=bounced \(([^)]*)/ )) {
+      # unknown user
+      # $Msg = " hello "
+      # print "bounce message from " . $Dest . " msg : " . $Relay . "\n";
+      if ($Relay =~ m/^(none|local|avcheck)/) {
+         $Temp = "To " . $Dest . " Msg=\"" . $Msg . "\"";
+         $LocalBounce{$Temp}++;				
+      } else {
+         $Temp = "To " . $Dest . " Msg=\"" . $Msg . "\"";
+         $ForeignBounce{$Temp}++;
+      }
+   } elsif ( ($Relay,$Dest) = ($ThisLine =~ m/reject: RCPT from ([^ ]*): 554 <([^ ]*)>.* Relay access denied.* to=([^ ]*)/) ) {
+      # print "reject: " . $ThisLine . "\n";
+      # print "Relay :" . $Relay . " to " . $Dest . "\n";
+      $Temp = "From " . $Relay . " to " . $Dest;
+      $RelayDenied{$Temp}++;
+   } elsif ( ($User,$From) = ($ThisLine =~ /^[a-zA-Z0-9]+: uid=([^ ]*) from=\<([^ ]*)>/)) {
+      #Messages sent by user
+      $Temp = $From . " (uid=" . $User . "): ";
+      $SentBy{$Temp}++;
+   } elsif ( ($From) = ($ThisLine =~ /^[a-zA-Z0-9]+: from=<([^ ]*)>, status=expired, returned to sender$/)) {
+      $ReturnedToSender++;
+   } elsif ( (undef) = ($ThisLine =~ /^[a-zA-Z0-9]+: resent-message-id=<([^ ]*)>$/)) {
+      $ResentMessages++;
+   } elsif ( ($Command,$Host) = ($ThisLine =~ /lost connection after ([^ ]*) from ([^ ]*)$/)) {
+      # Make some better summary with hosts
+      $ConnectionLost{$Command}++;
+   } elsif ( ($Command,$Host) = ($ThisLine =~ /timeout after ([^ ]*) from ([^ ]*)$/)) {
+      # Make some better summary with hosts
+      $ConnectionLost{$Command}++;
+   } elsif ( ($Rejected,undef,undef) = ($ThisLine =~ /^[a-zA-Z0-9]+: reject: header (.*); from=<([^ ]*)> to=<([^ ]*)>: Message content rejected$/)) {
+      $HeaderReject{$Rejected}++;
+   #} elsif ( ($Host,undef) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): [0-9]+ <([^ ]*)>: Sender address rejected: Domain not found;/)) {
+   #   $RejectDomain{$Host}++;
+   # above two lines included in generic reject sender on next condition
+   } elsif ( ($Host,$Sender,$Reason) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): [0-9]+ <(.*)>: Sender address rejected: (.*);/)) {
+      $RejectSender{$Reason}{$Host}{$Sender}++;
+      $RejectSenderHost{$Reason}{$Host}++;
+      $RejectSenderReason{$Reason}++;
+   } elsif ( ($Host) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): [0-9]+ <[^ ]*\[[^ ]*\]>: Client host rejected: Access denied;/)) {
+      $RejectClientHost{$Host}++;
+      $RejectClients++;
+   } elsif ( ($Host,$Recip,$Reason) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): [0-9]+ <(.*)>: Recipient address rejected: (.*);/)) {
+      $Temp = "$Host : $Reason";
+      $RejectRecip{$Recip}{$Temp}++;
+   } elsif ( ($Host,undef) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): 554 <(.*)>: Sender address rejected: Access denied;/)) {
+      $RejectAddress{$Host}++;
+   } elsif ( ($Host,$Site,$Reason) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): 554 Service unavailable; \[[^ ]*\] blocked using ([^ ]*), reason: (.*);/)) {
+      $Temp = "$Host : $Reason";
+      $RejectRBL{$Site}{$Temp}++;
+      $RejectedRBL++;
+   } elsif ( ($Host,$Site) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): 554 Service unavailable; \[[^ ]*\] blocked using ([^ ]*);/)) {
+      $RejectRBL{$Site}{$Host}++;
+      $RejectedRBL++;
+   } elsif ( ($Host,$Site,$Reason) = ($ThisLine =~ /warning: ([^ ]*): RBL lookup error: Name service error for \d+\.\d+\.\d+\.\d+\.([^ ]*): (.*)$/)) {
+      $Temp = "$Host : $Reason";
+      $RBLError{$Site}{$Temp}++;
+      $ErrorRBL++;
+   } elsif ( (undef,undef,$Error) = ($ThisLine =~ /warning: ([^ ]*): hostname ([^ ]*) verification failed: (.*)$/)) {
+      $HostnameVerification{$Error}++;
+   } elsif ( $ThisLine =~ /^[a-zA-Z0-9]+: removed$/) {
+      $RemovedFromQueue++;
+   } elsif ( ($Host) = ($ThisLine =~ /^[a-zA-Z0-9]+: enabling PIX <CRLF>.<CRLF> workaround for ([^ ]*\[[^ ]*\])$/)) {
+      $PixWorkaround{$Host}++;
+   } elsif ( ($Message) = ($ThisLine =~ /warning: valid_hostname: (.*)$/)) {
+      $ValidHostname{$Message}++;
+   } elsif ( ($Host,$MyName) = ($ThisLine =~ /warning: host ([^ ]*\[[^ ]*\]) greeted me with my own hostname ([^ ]*)$/)) {
+      $Temp = "$Host : greeted me with my own hostname $MyName";
+      $HeloError{$Temp}++;
+   } elsif ( ($Host,$MyName) = ($ThisLine =~ /warning: host ([^ ]*\[[^ ]*\]) replied to HELO\/EHLO with my own hostname ([^ ]*)$/)) {
+      $Temp = "$Host : replied to HELO\/EHLO with my own hostname $MyName";
+      $HeloError{$Temp}++;
+   } elsif ( ($Host,$Reason) = ($ThisLine =~ /reject: RCPT from ([^ ]*\[[^ ]*\]): \d+ <.*>: Helo command rejected: (.*);/)) {
+      $Temp = "$Host : Helo command rejected \($Reason\)";
+      $HeloError{$Temp}++;
+   } elsif ( ($Size,$Host) = ($ThisLine =~ /bad size limit "\(([^ ]*)\)" in EHLO reply from ([^ ]*\[[^ ]*\])$/)) {
+      $Temp = "$Host : bad size limit \($Size\) in EHLO reply";
+      $HeloError{$Temp}++;
+   } elsif ( ($Host,$Command) = ($ThisLine =~ /warning: Illegal address syntax from ([^ ]*\[[^ ]*\]) in ([^ ]*) command:/)) {
+      $IllegalAddressSyntax{$Command}{$Host}++;
+   } elsif ( ($Error) = ($ThisLine =~ /warning: mailer loop: (.*)$/)) {
+      $MailerLoop{$Error}++;
+   } elsif ( ($Host) = ($ThisLine =~ /warning: ([^ ]*\[[^ ]*\]): SASL .* authentication failed/)) {
+      $SaslAuthenticationFail{$Host}++;
+   } elsif ( ($Host,$User) = ($ThisLine =~ /^[a-zA-Z0-9]+: client=([^ ]*\[[^ ]*\]), .* sasl_username=([^ ]*)$/)) {
+      chomp($User);
+      $SaslAuth{$Host}{$User}++;
+   } elsif ( ($Host) = ($ThisLine =~ /TLS connection established from ([^ ]*\[[^ ]*\]):/)) {
+      $TLSconnectFrom{$Host}++; 
+   } elsif ( ($Host) = ($ThisLine =~ /TLS connection established to ([^ ]*):/)) {
+      $TLSconnectTo{$Host}++; 
+   } elsif ( ($Domain) = ($ThisLine =~ /warning: malformed domain name in resource data of MX record (.*)$/)) {
+      $MxError{$Domain}++;
+   } elsif ( ($Host,$Command) = ($ThisLine =~ /warning: ([^ ]*\[[^ ]*\]) sent .* header instead of ([^ ]*) command: /)) {
+      $Error = "Sent message header instead of $Command command";
+      $SmtpConversationError{$Error}{$Host}++;
+   } elsif (
+         ($ThisLine =~ m/warning: smtp_connect_addr: socket: Address family not supported by protocol/) or
+         ($ThisLine =~ m/warning: smtp_addr_one: unknown address family \d for [^ ]*/)
+      ) {
+      $UnsupportedFamily++;
+   } elsif ($ThisLine =~ m/(lookup |)table has changed -- exiting$/) {
+      $TableChanged++;
+   } elsif (
+         ($ThisLine =~ m/^fatal: [^ ]*\(\d+\): Message file too big$/) or
+         ($ThisLine =~ m/^warning: [a-zA-Z0-9]+: queue file size limit exceeded$/) or
+         ($ThisLine =~ m/^warning: uid=\d+: File too large$/)
+      ) {
+      $QueueSizeExceeded++;
+   } elsif ( ($Command,$Host) = ($ThisLine =~ /too many errors after ([^ ]*) from ([^ ]*\[[^ ]*\])$/)) {
+      $TooManyErrors{$Command}{$Host}++;
+   } elsif ( (undef,undef,$To) = ($ThisLine =~ /^reject: RCPT from ([^ ]*\[[^ ]*\]): 552 Message size exceeds fixed limit; from=<([^ ]*)> to=<([^ ]*)>$/)) {
+      $SizeLimit{"$From -> $To"}++;
+   } elsif ( (undef,$Source) = ($ThisLine =~ /^warning: database ([^ ]*) is older than source file ([a-zA-Z0-9\/]+)$/)) {
+      $DatabaseGeneration{$Source}++;
+   } elsif ( ($Reason) = ($ThisLine =~ /^warning: [a-zA-Z0-9]+: write queue file: (.*)$/)) {
+      $QueueWriteError{$Reason}++;
+   } elsif ( ($Reason) = ($ThisLine =~ /^warning: open active [a-zA-Z0-9]+: (.*)$/)) {
+      $QueueWriteError{"open active: $Reason"}++;
+   } elsif ( ($Reason) = ($ThisLine =~ /^warning: qmgr_active_corrupt: save corrupt file queue active id [a-zA-Z0-9]+: (.*)$/)) {
+      $QueueWriteError{"active corrupt: $Reason"}++;
+   } elsif ( ($Reason) = ($ThisLine =~ /^warning: qmgr_active_done_3_generic: remove [a-zA-Z0-9]+ from active: (.*)$/)) {
+      $QueueWriteError{"remove active: $Reason"}++;
+   } elsif ( ($Reason) = ($ThisLine =~ /^warning: [^ ]*\/[a-zA-Z0-9]+: (Error writing message file)$/)) {
+      $MessageWriteError{$Reason}++;
+   } elsif ( $ThisLine =~ /reject: RCPT from [^ ]*\[[^ ]*\]: \d+ Insufficient system storage; from=<.*> to=<.*>/) {
+      $NoFreeSpace++;
+   } elsif ( ($Process,$Status) = ($ThisLine =~ /^warning: process ([^ ]*) pid \d+ exit status (\d+)$/)) {
+      $ProcessExit{$Status}{$Process}++;
+   } elsif ( ($Option,$Reason) = ($ThisLine =~ /^fatal: config variable ([^ ]*): (.*)$/)) {
+      $ConfigError{$Option}{$Reason}++;
+   } elsif ( ($Warn) = ($ThisLine =~ /^warning: (.*)/)) {
+      # keep this as the next to last condition
+      $UnknownWarnings{$Warn}++;
+   } else {
+      push @OtherList,$ThisLine;
+   }
+}
+
+##################################################################
+
+if ($NoFreeSpace > 0) {
+   print "\nWARNING!!!\n";
+   print "Insufficient system storage error $NoFreeSpace Time(s)\n";
+}
+
+if ($MsgsSent > 0) {
+   print "\n\n$BytesTransferred bytes transferred";
+   print "\n$MsgsSent messages sent";
+}
+
+if ($FourHourReturns > 0) {
+   print "\n$FourHourReturns messages returned after 4 hours";
+}
+
+if ($ReturnedToSender >0) {
+   print "\n$ReturnedToSender messages expired and returned to sender";
+}
+
+if ($ResentMessages > 0) {
+   print "\n$ResentMessages resent messages";
+}
+
+if ($RemovedFromQueue > 0) {
+   print "\n$RemovedFromQueue messages removed from queue";
+}
+
+if ($QueueSizeExceeded > 0) {
+   print "\n$QueueSizeExceeded messages exceeded queue or message file size limit and removed";
+}
+
+if ($TableChanged > 0) {
+   print "\n$TableChanged exited after table change detection";
+}
+
+if ($UnsupportedFamily > 0) {
+   print "\nUnknown address family $UnsupportedFamily Time(s)\n";
+}
+
+if (keys %ConfigError) {
+   print "\n\nWARNING!!!\n";
+   print "Configuration Errors:\n";
+   foreach $Option (sort {$a cmp $b} keys %ConfigError) {
+      print "   Option: $Option\n";
+      foreach $Reason (sort {$a cmp $b} keys %{$ConfigError{$Option}} ) {
+         print "      $Reason: $ConfigError{$Option}{$Reason} Time(s)\n";
+      }
+   }
+}
+
+if (keys %QueueWriteError) {
+   print "\nError writing queue file:\n";
+   foreach $Reason (sort {$a cmp $b} keys %QueueWriteError) {
+      print "   $Reason : $QueueWriteError{$Reason} Time(s)\n";
+   }
+}
+
+if (keys %MessageWriteError) {
+   print "\n\nError writing message file:\n";
+   foreach $Reason (sort {$a cmp $b} keys %MessageWriteError) {
+      print "   $Reason : $MessageWriteError{$Reason} Time(s)\n";
+   }
+}
+
+if (keys %DatabaseGeneration) {
+   print "\n\nDatabase files are not up-to-date (propably rehash is needed):\n";
+   foreach $Source (sort {$a cmp $b} keys %DatabaseGeneration) {
+      print "   $Source : $DatabaseGeneration{$Source} Time(s)\n";
+   }
+}
+
+if (keys %PixWorkaround) {
+   print "\n\nEnabled PIX <CRLF>.<CRLF> workaround for:\n";
+   foreach $Host (sort {$a cmp $b} keys %PixWorkaround) {
+      print "   $Host : $PixWorkaround{$Host} Time(s)\n";
+   }
+}
+
+if (keys %SentBy) {
+   print "\n\nTop ten senders:\n";
+   foreach $ThisSender (sort {$a cmp $b} keys %SentBy) {
+      $ThisNumber = $SentBy{$ThisSender};
+      push(@{$ThisIsNumber{$ThisNumber}}, $ThisSender);
+   }
+   my $ListRank = 10;
+   foreach $SenderRank (sort {$b <=> $a} keys %ThisIsNumber) {
+      last unless ($ListRank > 0);
+      print "   $SenderRank messages sent by:\n";
+      foreach $ThisSender (@{$ThisIsNumber{$SenderRank}}) {
+         last unless ($ListRank > 0);
+         $ListRank--;
+         print"      $ThisSender\n";
+      }
+   }
+}
+
+if (($Detail >= 5) and (keys %UnknownUsers)) {
+   print "\n\nUnknown users:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %UnknownUsers) {
+      print "   $ThisOne : $UnknownUsers{$ThisOne} Time(s)\n";
+   }
+}
+
+if (keys %SaslAuthenticationFail) {
+   print "\n\nSASL Authentication failed from:\n";
+   foreach $Host (sort {$a cmp $b} keys %SaslAuthenticationFail) {
+      print "   $Host : $SaslAuthenticationFail{$Host} Time(s)\n";
+   }
+}
+
+if (keys %SaslAuth) {
+   print "\n\nSASL Authenticated messages from:\n";
+   foreach $Host (sort {$a cmp $b} keys %SaslAuth) {
+      print "    $Host:\n";
+      foreach $User (sort {$a cmp $b} keys %{$SaslAuth{$Host}} ) {
+         print "        sasluser $User : $SaslAuth{$Host}{$User} Times(s)\n";
+      }
+   }
+}
+
+if (keys %TLSconnectFrom) {
+   print "\n\nTLS Connections from:\n";
+   foreach $Host (sort {$a cmp $b} keys %TLSconnectFrom) {
+      print "   $Host : $TLSconnectFrom{$Host} Time(s)\n";
+   }
+}
+
+if (keys %TLSconnectTo) {
+   print "\n\nTLS Connections To:\n";
+   foreach $Host (sort {$a cmp $b} keys %TLSconnectTo) {
+      print "   $Host : $TLSconnectTo{$Host} Time(s)\n";
+   }
+}
+
+if (keys %RelayDenied) {
+   print "\n\nRelaying denied:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %RelayDenied) {
+      print "   $ThisOne : $RelayDenied{$ThisOne} Time(s)\n";
+   }
+}
+
+if (keys %SizeLimit) {
+   print "\n\nMessage size exceeds fixed limit:\n";
+   foreach $Message (sort {$a cmp $b} keys %SizeLimit) {
+      print "   $Message: $SizeLimit{$Message} Time(s)\n";
+   }
+}
+
+if (keys %LocalBounce) {
+   print "\n\nLocal Bounce:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %LocalBounce) {
+      print "   $ThisOne : $LocalBounce{$ThisOne} Time(s)\n";
+   }
+}
+
+if (keys %ForeignBounce) {
+   print "\n\nForeign Bounce:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %ForeignBounce) {
+      print "   $ThisOne : $ForeignBounce{$ThisOne} Time(s)\n";
+   }
+}
+
+if (($Detail >= 5) and (keys %HeaderReject)) {
+   print "\n\nHeader content reject:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %HeaderReject) {
+      print "   $ThisOne : $HeaderReject{$ThisOne} Time(s)\n";
+   }
+}
+
+if ($RejectClients > 0) {
+   print "\n\nClient hosts rejected $RejectClients Time(s)\n";
+   foreach $Host (sort {$a cmp $b} keys %RejectClientHost) {
+      print "   $Host $RejectClientHost{$Host} Time(s)\n";
+   }
+}
+
+if (keys %RejectSender) {
+   print "\n\nMessages rejected:\n";
+   foreach $Reason (sort {$a cmp $b} keys %RejectSender) {
+      print "    $Reason $RejectSenderReason{$Reason} Time(s)\n";
+      foreach $Host (sort {$a cmp $b} keys %{$RejectSender{$Reason}} ) {
+         print "        $Host $RejectSenderHost{$Reason}{$Host} Time(s)\n";
+         if ($Detail >= 5) {
+            foreach $Sender (sort {$a cmp $b} keys %{$RejectSender{$Reason}{$Host}}) {
+               print "           $Sender : $RejectSender{$Reason}{$Host}{$Sender} Time(s)\n";
+            }
+         }
+      }
+   }
+}
+
+if (keys %RejectRecip) {
+   print "\n\nMessages rejected to recipient:\n";
+   foreach $Recip (sort {$a cmp $b} keys %RejectRecip) {
+      print "    $Recip:\n";
+      foreach $Host (sort {$a cmp $b} keys %{$RejectRecip{$Recip}} ) {
+         print "        $Host : $RejectRecip{$Recip}{$Host} Time(s)\n";
+      }
+   }
+}
+
+
+if (keys %RejectAddress) {
+   print "\n\nRejected sender address from:\n";
+   foreach $Host (sort {$a cmp $b} keys %RejectAddress) {
+      print "   $Host : $RejectAddress{$Host} Time(s)\n";
+   }
+}
+
+if (keys %RejectRBL) {
+   print "\n\nMessages rejected using Anti-Spam site $RejectedRBL Time(s)\n";
+   foreach $Site (sort {$a cmp $b} keys %RejectRBL) {
+      $count = 0;
+      # okay there is probably a more efficient way to get this total
+      # than walking the container again, but my perl is weak
+      # and I want to know which list are working the best so I can
+      # put them at the top of the checking order in my configuration
+      foreach $Host ( keys %{$RejectRBL{$Site}} ) {
+         $count = $count + $RejectRBL{$Site}{$Host};
+      }
+      print "    $Site identified $count spam messages:\n";
+      foreach $Host (sort {$a cmp $b} keys %{$RejectRBL{$Site}} ) {
+         print "      $Host : $RejectRBL{$Site}{$Host} Time(s)\n";
+      }
+   }
+}
+
+if (keys %RBLError) {
+   print "\n\nRBL lookup errors $ErrorRBL Time(s)\n";
+   foreach $Site (sort {$a cmp $b} keys %RBLError) {
+      print "   $Site\n";
+      if ($Detail >= 5) {
+         foreach $Error (sort {$a cmp $b} keys %{$RBLError{$Site}} ) {
+            print "      $Error : $RBLError{$Site}{$Error} Time(s)\n";
+         }
+      }
+   }
+}
+
+if (keys %AuthWarns) {
+   print "\n\nAuthentication warnings:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %AuthWarns) {
+      print "   $ThisOne : $AuthWarns{$ThisOne} Time(s)\n";
+   }
+}
+
+if (keys %ForwardErrors) {
+   print "\n\nForwarding errors:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %ForwardErrors) {
+      print "   $ThisOne : $ForwardErrors{$ThisOne} Time(s)\n";
+   }
+}
+
+if (($Detail >= 5) and (keys %SmtpConversationError)) {
+   print "\n\nSMTP commands dialog errors:\n";
+   foreach $Error (sort {$a cmp $b} keys %SmtpConversationError) {
+      print "   $Error:\n";
+      foreach $Host (sort {$a cmp $b} keys %{$SmtpConversationError{$Error}} ) {
+         print "      $Host : $SmtpConversationError{$Error}{$Host} Time(s)\n";
+      }
+   }
+}
+
+if (keys %TooManyErrors) {
+   print "\n\nToo many errors in SMTP commands dialog:\n";
+   foreach $Command(sort {$a cmp $b} keys %TooManyErrors) {
+      print "   After command $Command:\n";
+      foreach $Host (sort {$a cmp $b} keys %{$TooManyErrors{$Command}} ) {
+         print "      $Host : $TooManyErrors{$Command}{$Host} Time(s)\n";
+      }
+   }
+}
+
+if (keys %ConnectionLost) {
+   print "\n\nConnections lost:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %ConnectionLost) {
+      print "   Connection lost after command $ThisOne : $ConnectionLost{$ThisOne} Time(s)\n";
+   }
+}
+
+if (($Detail >= 5) and (keys %MxError)) {
+   print "\n\nMalformed domain name in resource data of MX record:\n";
+   foreach $Domain (sort {$a cmp $b} keys %MxError) {
+      print "   $Domain : $MxError{$Domain} Time(s)\n";
+   }
+}
+
+if (%IllegalAddressSyntax) {
+   print "\n\nIllegal address syntax:\n";
+   foreach $Command (sort {$a cmp $b} keys %IllegalAddressSyntax) {
+      print "   In command $Command from:\n";
+      foreach $Host (sort {$a cmp $b} keys %{$IllegalAddressSyntax{$Command}} ) {
+         print "      $Host : $IllegalAddressSyntax{$Command}{$Host} Time(s)\n";
+      }
+   }
+}
+
+if (keys %HostnameVerification) {
+   print "\n\nHostname verification errors:\n";
+   foreach $Error (sort {$a cmp $b} keys %HostnameVerification) {
+      print "   $Error : $HostnameVerification{$Error} Time(s)\n";
+   }
+}
+
+if (keys %MailerLoop) {
+   print "\n\nMailer Loop:\n";
+   foreach $Error (sort {$a cmp $b} keys %MailerLoop) {
+      print "   $Error : $MailerLoop{$Error} Time(s)\n";
+   }
+}
+
+if (keys %ValidHostname) {
+   print "\n\nHostname validation errors:\n";
+   foreach $Message (sort {$a cmp $b} keys %ValidHostname) {
+      print "   $Message : $ValidHostname{$Message} Time(s)\n";
+   }
+}
+
+if (keys %HeloError) {
+   print "\n\nErrors in HELO/EHLO conversation:\n";
+   foreach $Error (sort {$a cmp $b} keys %HeloError) {
+      print "   $Error : $HeloError{$Error} Time(s)\n";
+   }
+}
+
+if (keys %ProcessExit) {
+   print "\n\nProcess exited:\n";
+   foreach $Status (sort {$a cmp $b} keys %ProcessExit) {
+      print "   Exit status $Status:\n";
+      foreach $Process (sort {$a cmp $b} keys %{$ProcessExit{$Status}} ) {
+         print "      $Process: $ProcessExit{$Status}{$Process} Time(s)\n";
+      }
+   }
+}
+
+if (keys %UnknownWarnings) {
+   print "\n\nUnrecognized warning:\n";
+   foreach $ThisOne (sort {$a cmp $b} keys %UnknownWarnings) {
+      print "    $ThisOne : $UnknownWarnings{$ThisOne} Time(s)\n";
+   }
+}
+
+if ($#OtherList >= 0) {
+   print "\n\n**Unmatched Entries**\n\n";
+   print @OtherList;
+}
+	
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 et
+

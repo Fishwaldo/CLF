@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+##########################################################################
+# $Id: removeheaders,v 1.4 2002/10/12 02:08:15 kirk Exp $
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Luuk de Boer <luuk@pi.net>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to kirk@kaybee.org.
+########################################################
+
+while (defined($ThisLine = <STDIN>)) {
+    $ThisLine =~ s/^..\/..\/.. ..:..:.. //;
+    $ThisLine =~ s/^\[....\/..\/.. ..:..:...+?\]\s*//;
+    print $ThisLine;
+}
+

@@ -1,0 +1,20 @@
+			HOW TO WRITE A SYSLOGD MODULE
+			=============================
+
+First, it is recommended that you use the templates for module creations,
+im_myodule.c and om_mymodule.c. Take care with getopt optreset present
+on some OSs.
+
+Some extra care should be taken of repeated messages too.
+
+Names
+-----
+
+Names used should be alphanumeric using '_' as separation.
+
+Libraries
+---------
+
+Your module should handle it's libraries with dlopen() and dlsym().
+
+For more information join our developer list (see INSTALL).

@@ -1,0 +1,4 @@
+#!/bin/tcsh
+#$Id$
+setenv REMOTE_USER msyslog
+php /var/www/html/scripts/php/processlogs.php >& /tmp/webresults.1

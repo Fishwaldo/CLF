@@ -1,0 +1,170 @@
+/*	$CoreSDI: README,v 1.5.4.3.4.10 2001/11/30 23:13:42 alejo Exp $	*/
+
+
+  
+  
+SPECIAL NOTE
+------------
+  
+Most of the documentation and examples are on the manual pages provided.
+They are meant to be the ultimate reference. See im_bsd.8, im_linux.8
+im_udp.8, om_mysql.8, om_regex.8, peochk.8 im_doors.8, im_streams.8
+im_unix.8, om_peo.8, om_tcp.8, syslog.conf.5, im_file.8, im_tcp.8
+om_classic.8, om_pgsql.8, om_udp.8, and syslogd.8.
+
+
+
+
+Installation
+------------
+
+Please read the file INSTALL.
+
+About Modular Syslog
+--------------------
+
+This is a daemon for the syslog system log interface. It is based on OpenBSD's
+syslog daemon implementation, with many improvements (ie. log hash protection).
+
+This project is intended as a whole revision of previous Secure Syslogd
+project (wich is unsupported by now). It has all functionalities and some
+more. The remaining things are Solaris support and Audit compatibility
+(on the works).
+
+There are also a few lines taken from the sysklogd project, wich got them
+modified from BSD. Specifically the '!', '=' use on configuration.
+
+Reporting Bugs
+--------------
+
+Submit bugs at this project's Sourceforge Bug reporting system at:
+http://sourceforge.net/tracker/?func=add&group_id=25741&atid=385117
+
+You may also report them directly to the authors; send an email to
+core.devel.alat@corest.com, describing the problem the most you can,
+containing also machine description, hardware description, the
+configuration file (/etc/syslog.conf), the OS description, and the
+invoking command line.
+
+The more you describe the bug, the faster we can fix it.
+
+Known Bugs
+----------
+
+- If a module blocks on I/O the hole daemon blocks, and messages can get lost
+  on extremely busy hosts.
+
+
+Thanks
+------
+
+We'd like to thank for helping and supporting
+
+Florin Andrei <florin@sgi.com>
+Arthur Korn <arthur@korn.ch>
+Ari Edelkind <edelkind@phri.nyu.edu>
+
+"You guys rock!"
+ - Alejo
+
+
+Main differences with previous BSD syslog
+-----------------------------------------
+
+The whole internal structure was redesigned to work with input and output modules,
+standarizing interfaces to facilitate development for using special devices and
+flexible configurations.
+
+Special care was taken to remain backwards compatible on configuration files.
+You can use you previous BSD config files with this improved version of syslog.
+A new notation was made for configuration of modules.
+
+This new approach allows adding new functionality without complicating the code.
+
+Current available output modules are classic, mysql, peo, pgsql, regex and
+tcp.  Available input modules are bsd, linux, unix, tcp and udp.
+
+Classic Output Module
+---------------------
+
+Performs the previous BSD syslogd output tasks: save to a file or pipe,
+forward to a remote host though UDP, mail a user, send a message to a console,
+send a message to a tty, send message to all users (WALL).
+
+MySQL Output Module
+-------------------
+
+Performs loggin in a MySQL server, either local or remote. The table format
+must be specified as om_mysql(8) manpage.
+
+PostgreSQL Output Module
+------------------------
+
+Performs loggin in a PostgreSQL server, either local or remote. The table
+format must be specified as om_pgsql(8) manpage.
+
+Regular Expression Output Module
+--------------------------------
+
+This module acts as a filter, applying a regular expression to a message,
+hour, date or host. If message matches all, the next module in the
+configuration file is called. If reverse flag is used, pass all but matching
+messages. See om_regex(8) manpage for more details.
+
+Peo Output Module
+-----------------
+
+This module does hash protection on logs. See om_peo(8) manpage for more
+information on useage.
+
+TCP Output Module
+-----------------
+
+Send messages t an TCP socket. Use it simply as this on command line
+-i tcp -h <host> -p <port number> -s <bytes>. You may specify an optional
+buffer to save lines on dropped connections with -s.
+
+BSD Input Module
+----------------
+
+Gets messages from a BSD special kernel logging device. Use it simply
+as this on command line -i /dev/klog.
+
+Linux Input Module
+------------------
+
+Gets messages from a Linux special kernel logging device. Read im_linux(8)
+manpage for more details.
+
+UDP Input Module
+----------------
+
+Read messages from an UDP socket. Use it simply as this on command line
+-i udp <port number>. The port number is optional, and default is
+the one specified on /etc/services for "udp" and "syslog".
+
+TCP Input Module
+----------------
+
+Read messages from an TCP socket. Use it simply as this on command line
+-i tcp -h <host> -p <port number>.
+
+Unix Input Module
+-----------------
+
+Reads messages from a unix domain socket. Use it simply as this on command
+line -i 'unix /dev/log' or -i unix:/dev/log.
+
+Streams Input Module
+--------------------
+
+This module handles stream devices (Solaris, and other SYSV like). Invoke
+on command line like this -i streams or -i streams:/dev/log (or equivalent).
+Note: this module may require Doors input module to work.
+
+Doors Input Module
+------------------
+
+May be needed on for other input modules. Invoke it like this on command
+line -i doors or -i doors:/etc/.syslog_door (or equivalent).
+

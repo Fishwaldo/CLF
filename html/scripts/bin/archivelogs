@@ -1,0 +1,8 @@
+#!/bin/tcsh
+#$Id$
+set currentlog="/tmp/smt.log.`date +"%y%m%d"`"
+touch $currentlog
+chown root.users $currentlog 
+chmod 640 $currentlog 
+setenv REMOTE_USER msyslog
+/var/www/html/scripts/php/archive.php

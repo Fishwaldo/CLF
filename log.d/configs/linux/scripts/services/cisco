@@ -1,0 +1,401 @@
+#!/usr/bin/perl -w
+##########################################################################
+# $Id: cisco,v 1.2 2004/06/21 15:07:21 kirk Exp $
+##########################################################################
+
+########################################################
+# This was written and is maintained by:
+#    Laurent DUFOUR <laurent.dufour@havas.com>,<dufour_l@hotmail.com>
+#    based on the work of
+#    Kirk Bauer <kirk@kaybee.org>
+#
+# Please send all comments, suggestions, bug reports,
+#    etc, to laurent.dufour@havas.com
+########################################################
+
+use Logwatch ':all';
+
+$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+my ($month,$day,$time,$host,$process,$conn,$msg);
+
+while (defined($ThisLine = <STDIN>)) {
+
+($month,$day,$time,$host,$process,$conn,$msg)=split(/ +/,$ThisLine,7);
+
+   if ( ($ThisLine =~ /(ISDN-6-.+)/ ) or
+         ($ThisLine =~ /Copyright/ ) or 
+         ($ThisLine =~ /Cisco Internetwork Operating System Software/ ) or 
+         ($ThisLine =~ /IOS \(tm\)/ ) or 
+         ($ThisLine =~ /accept udp/ ) or
+         ($ThisLine =~ /accept tcp/ ) or
+         ($ThisLine =~ /accept icmp/ ) or
+         ($ThisLine =~ /accept ip/ ) or
+         ($ThisLine =~ /denied udp/ ) or
+         ($ThisLine =~ /denied tcp/ ) or
+         ($ThisLine =~ /denied icmp/ ) or
+         ($ThisLine =~ /denied ip/ )
+    ) {
+      # don't care about this, will code this later
+   }
+   elsif ( ($interface,$errortype,$withwho) = ($ThisLine =~ /duplex mismatch discovered on (.+) \(.*\), with (.*)/) ) {
+      $DuplexMismatched{$host}{$interface," with ",$errortype}++;
+   }
+   elsif ( ($interface,$vlan_number,$withwho) = ($ThisLine =~ /Native VLAN mismatch discovered on (.+) \(([^ ]+)\), with ([^ ]+)/) ) {
+      $VLANMismatched{$host}{$interface," vlan ",$vlan_number}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /NVLANMISMATCH:Native vlan mismatch detected on port (.*)/) ) {
+      $VLANMismatched{$host}{$interface}++;
+   }
+   elsif ( ($interface,$state) = ($ThisLine =~ /Interface (.+), changed state to (.*)/) ) {
+      $InterfaceState{$host}{$interface," ",$state}++;
+   }
+   elsif ( ($interface,$state) = ($ThisLine =~ /Line protocol on Interface (.+), changed state to (.*)/) ) {
+      $LineProtocolInterfaceState{$host}{$interface," ",$state}++;
+   }
+   elsif ( ($interface_experiencing_error) = ($ThisLine =~ /ERROR: (.*) is experiencing errors/) ) {
+      $InterfaceError{$host}{$interface_experiencing_error}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /DUPLEXMISMATCH:Full\/half duplex mismatch detected on port (.*)/) ) {
+      $DuplexMismatched{$host}{$interface}++;
+   }
+   elsif ( ($interface,$state,$destination_port) = ($ThisLine =~ /PORTFROMSTP:Port (.+) (.+) bridge port (.*)/) ) {
+      $PortStateBridge{$host}{$interface," ",$state," ",$destination_port}++;
+   }
+   elsif ( ($interface,$state,$destination_port) = ($ThisLine =~ /PORTTOSTP:Port (.+) (.+) bridge port (.*)/) ) {
+      $PortStateBridge{$host}{$interface," ",$state," ",$destination_port}++;
+   }
+   elsif ( ($Unit) = ($ThisLine =~ /Unit (.*), excessive modem control changes/) ) {
+    $ModemChange{$host}{$Unit}++;
+   }
+   elsif ( ($ThisLine =~ /Compiled/) ) {
+      $Started{$host}++;
+   }
+   elsif ( ($message) = ($ThisLine =~ /RELOAD: (.*)/) ) {
+      $ReloadRequested{$host}{$message}++;
+   }
+   elsif ( ($message) = ($ThisLine =~ /RESTART: (.*)/) ) {
+      $Restarted{$host}{$message}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /LOSTCARR: (.*)/) ) {
+      $LostCarrier{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /DUPADDR: (.*)/) ) {
+      $DuplicateAddress{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /TRUNKPORTON:Port (.*)/) ) {
+      $TRUNKPORTON{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /TRUNKPORTOFF:Port (.*)/) ) {
+      $TRUNKPORTOFF{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /EXCESSCOLL: (.*)/) ) {
+      $ExcessiveCollision{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /LATECOLL: (.*)/) ) {
+      $LateCollision{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /UNDERFLO: (.*)/) ) {
+      $Underflow{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /P2_WARN: (.*)/) ) {
+      $InvalidMulticast{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /CONFIG.+: (.*)/) ) {
+      $Configured{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /CONFIG: (.*)/) ) {
+      $Configured{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /LINK_FLAP: (.*)/) ) {
+      $Flapping{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /ERR_DISABLE: (.*)/) ) {
+      $Flapping{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /LOGIN_FAIL:User (.*)/) ) {
+      $LoginFail{$host}{$interface}++; 
+   }
+   elsif ( ($interface) = ($ThisLine =~ /RSHPORTATTEMPT: (.*)/) ) {
+      $RSHELLFail{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /SPANTREE.+: (.*)/) ) {
+      $SpantreeFailure{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /DHCPD-4-DECLINE_CONFLICT: (.*)/) ) {
+      $DHCPConflict{$host}{$interface}++;
+   }
+   elsif ( ($interface) = ($ThisLine =~ /COUNTERS: (.*)/) ) {
+      $CountersMsg{$host}{$interface}++;
+   }
+   else {
+      # Report any unmatched entries...
+      # push @OtherList,$ThisLine;
+   }
+}
+
+if (keys %Started) {
+   print "\nDevice started :\n";
+   foreach $ThisOne (keys %Started) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$Started{$ThisOne}}) {
+         print "\t Started" .$ThatOne . "\t: " . $Started{$ThisOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %Restarted) {
+   print "\nDevice restarted :\n";
+   foreach $ThisOne (keys %Restarted) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$Restarted{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $Restarted{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %ReloadRequested) {
+   print "\nDevice reload requested :\n";
+   foreach $ThisOne (keys %ReloadRequested) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $ReloadRequested{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if (keys %DuplexMismatched) {
+   print "\nDuplex Mismatch warning:\n";
+   foreach $ThisOne (keys %DuplexMismatched) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$DuplexMismatched{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $DuplexMismatched{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %VLANMismatched) {
+   print "\nNative VLAN mismatch warning:\n";
+   foreach $ThisOne (keys %VLANMismatched) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$VLANMismatched{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $VLANMismatched{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %TRUNKPORTON) {
+   print "\nPort/Interface trunk on :\n";
+   foreach $ThisOne (keys %TRUNKPORTON) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$TRUNKPORTON{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $TRUNKPORTON{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %TRUNKPORTOFF) {
+   print "\nPort/Interface trunk off :\n";
+   foreach $ThisOne (keys %TRUNKPORTOFF) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$TRUNKPORTOFF{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $TRUNKPORTOFF{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %PortStateBridge) {
+   print "\nPort/Interface left/joined bridge :\n";
+   foreach $ThisOne (keys %PortStateBridge) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$PortStateBridge{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $PortStateBridge{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if (( $Detail >= 5 ) and (keys %InterfaceState)) {
+   print "\nPort/Interface state change :\n";
+   foreach $ThisOne (keys %InterfaceState) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$InterfaceState{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $InterfaceState{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %Flapping) {
+   print "\nPort/Interface Flapping :\n";
+   foreach $ThisOne (keys %Flapping) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$Flapping{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $Flapping{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %$DuplicateAddress) {
+   print "\nPort/Interface duplicate address :\n";
+   foreach $ThisOne (keys %$DuplicateAddress) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$$DuplicateAddress{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $DuplicateAddress{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if (keys %InvalidMulticast) {
+   print "\nPort/Interface invalid multicast :\n";
+   foreach $ThisOne (keys %InvalidMulticast) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$InvalidMulticast{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $InvalidMulticast{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %SpantreeFailure) {
+   print "\nPort/Interface spantree failure :\n";
+   foreach $ThisOne (keys %SpantreeFailure) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$SpantreeFailure{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $SpantreeFailure{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+
+if (keys %LineProtocolInterfaceState) {
+   print "\nLine protocol on Port/Interface changed state :\n";
+   foreach $ThisOne (keys %LineProtocolInterfaceState) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$LineProtocolInterfaceState{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $LineProtocolInterfaceState{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %Underflow) {
+   print "\nPort/Interface transmit error(underflow) :\n";
+   foreach $ThisOne (keys %Underflow) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$Underflow{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $Underflow{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %LostCarrier) {
+   print "\nPort/Interface transmit error (lost carrier) :\n";
+   foreach $ThisOne (keys %LostCarrier) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$LostCarrier{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $LostCarrier{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %LateCollision) {
+   print "\nPort/Interface transmit error (Late collision) :\n";
+   foreach $ThisOne (keys %LateCollision) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$LateCollision{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $LateCollision{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %ExcessiveCollision) {
+   print "\nPort/Interface Excessive collision :\n";
+   foreach $ThisOne (keys %ExcessiveCollision) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$ExcessiveCollision{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $ExcessiveCollision{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if (keys %InterfaceError) {
+   print "\nPort/Interface experiencing error :\n";
+   foreach $ThisOne (keys %InterfaceError) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$InterfaceError{$ThisOne}}) {
+         print "\tPort or Interface " .$ThatOne . "\t: " . $InterfaceError{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %ModemChange) {
+   print "\nExcessive modem control changes:\n";
+   foreach $ThisOne (keys %ModemChange) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$ModemChange{$ThisOne}}) {
+         print "\tUnit " .$ThatOne . "\t: " . $ModemChange{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %CountersMsg) {
+   print "\nCounters chnages:\n";
+   foreach $ThisOne (keys %CountersMsg) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$CountersMsg{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $CountersMsg{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %Configured) {
+   print "\nDevice configured by :\n";
+   foreach $ThisOne (keys %Configured) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$Configured{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $Configured{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %LoginFail) {
+   print "\nLogin failed on device :\n";
+   foreach $ThisOne (keys %LoginFail) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$LoginFail{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $LoginFail{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+if (keys %RSHELLFail) {
+   print "\nRemote Shell Login failed on device :\n";
+   foreach $ThisOne (keys %RSHELLFail) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$RSHELLFail{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $RSHELLFail{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if (keys %DHCPConflict) {
+   print "\nDHCP Conflict on device :\n";
+   foreach $ThisOne (keys %DHCPConflict) {
+      print "   " . $ThisOne . ":\n";
+      foreach $ThatOne (keys %{$DHCPConflict{$ThisOne}}) {
+         print "\t " .$ThatOne . "\t: " . $DHCPConflict{$ThisOne}{$ThatOne} . " Time(s)\n";
+      }
+   }
+}
+
+
+if ($#OtherList >= 0) {
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);
+
