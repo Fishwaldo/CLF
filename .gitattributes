@@ -105,6 +105,7 @@ html/scripts/crontab/root -text
 html/scripts/php/analyzetsyslog.php -text
 html/scripts/php/archive.php -text
 html/scripts/php/autovac.php -text
+html/scripts/php/cleanprocessor.php -text
 html/scripts/php/expire.php -text
 html/scripts/php/nightlyroguecheck.php -text
 html/scripts/php/processlogs.php -text
