@@ -1,10 +1,46 @@
-$Id$
+CLF Basic Installation.
 
-1.  cat pgsql.secframe | psql -Upostgres securityframework
-2.  createdb TSyslog
-3.  cat pgsql.msyslog | psql -Upostgres TSyslog 
-4.  adjust php.ini
-	sendmail_path = /usr/sbin/sendmail -i -t -fmailfromsmac@yourdomain.com
-	max_execution_time = 295
-	memory_limit = 16M
-5.  put the .htaccess file into the correct directory
+1) Create the Two Postgres Databases and users
+createuser msyslog (with a random password)
+createuser secframe (with a random password)
+createdb TSyslog
+createdb securityframework
+
+2) Create the Schema
+psql -U msyslog -f TSyslog.sql TSyslog
+psql -U secframe -f securityframework.sql securityframework
+
+3) Move the files from the HTML directory in the archive to the Servers root directory
+(eg: /var/www/html)
+4) Move the files from the LIB directory in the archive to a area accessable to the HTTP process
+(eg: /var/www/lib)
+
+5) Compile the msyslog program contained in the msyslog-v1.08a+smac directory in the archive. 
+6) Remove the system syslog program, or disable it.
+7) Follow the install instructions to install msyslog program and configure it to log to the TSyslog database using the msyslog username
+(we send everything msyslog recieves to the database, but you might want to read the msyslog doco to redirect only certian messages)
+7a) setup msyslog to automatically start at boot (edit your rc scripts)
+
+8) Install Mod_Auth_PGSQL from http://www.giuseppetanzilli.it/mod_auth_pgsql/ into apache.
+9) Reconfigure the .htaccess file in the root webspace to authenticate with the postgres database with the correct usernames and passwords.
+10) To add some users, use secrurityframeworkdata.sql file. Default username/password are clfadmin/password. 
+11) edit config.php in the webroot directory with the correct values.
+12) edit pix.php in the library directory with postgres login information for msyslog and administrator email address
+13) edit secframe.php in the library directory with postgres login info for secframe 
+14) set "register_globals = On" in php.ini file and restart apache. (See TODO)
+15) extrace log.d directory in the archive to /etc/log.d
+16) edit db.conf with postgres info for TSyslog (Check with Johan on any extra config needed here)
+17) Point your browswer at the webserver and login. Consult the help doco for info on setting up new hosts etc.
+18) Setup cron to run the scripts/php/processlogs.php every 5 minutes or so. Run by hand to confirm everything is operating correctly after setting up a few hosts in the website.
+19) Setup Cron to optionally run:
+autovac.php weekly or more, depending on DB size
+nightlyrougecheck.php daily (to email the admin about hosts that are sending messages to the CLF that are not configured)
+runlogwatch.php to generate the log summary reports daily (at say 1 am, for previous days)
+weeklyreport.php to email the log review comments for the previous week (weekly, edit top of file to set email address)
+
+
+
+TODO:
+---------------------------------
+update html code to not require register_globals enabled. (Inherited from SMT code)
+re-write archive.php and expire.php to not consume so much memory (they buffer the entire sql result sets, and when you are dealing with databases that are 50 Gig in size, we don't have enough memory to buffer this info in one go.

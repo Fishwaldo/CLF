@@ -50,9 +50,10 @@ html/background.php -text
 html/calendar.php -text
 html/config.php -text
 html/customer.php -text
+html/data/TSyslog.sql -text
 html/data/install -text
-html/data/pgsql.msyslog -text
-html/data/pgsql.secframe -text
+html/data/securityframework.sql -text
+html/data/securityframeworkdata.sql -text
 html/equiptype.php -text
 html/faq.txt -text
 html/filter.php -text

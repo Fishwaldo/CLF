@@ -1,5 +1,0 @@
-/* $Id$ */
-insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Customer','Customers of Syslog System')\g
-insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Analyst','NOC Analyst')\g
-insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog Administrators','Syslog Adminstrator')\g
-insert into SecFrame_TGroup (TGroup_Name,TGroup_Desc) values ('Syslog msyslog','Syslog Processor')\g
