@@ -48,7 +48,7 @@ static void WINAPI ServiceMain(DWORD argc, LPTSTR * argv);
 
 /* Service dispatch table */
 static SERVICE_TABLE_ENTRY ServiceDispatchTable[] = {
-	{ "EvtSys", ServiceMain },
+	{ "CLFAgent", ServiceMain },
 	{ NULL, NULL }
 };
 
@@ -70,7 +70,7 @@ int ServiceInstall()
 	}
 
 	/* Create a new service */
-	new_service = CreateService(service_manager, "EvtSys", "Eventlog to Syslog", SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_IGNORE, "%SystemRoot%\\System32\\evtsys.exe", NULL, NULL, "eventlog\0", NULL, NULL);
+	new_service = CreateService(service_manager, "CLFAgent", "CSC CLF Agent", SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_IGNORE, "%SystemRoot%\\System32\\evtsys.exe", NULL, NULL, "eventlog\0", NULL, NULL);
 	if (new_service == NULL)
 		Log(LOG_ERROR|LOG_SYS, "Cannot create service");
 	else
@@ -99,7 +99,7 @@ int ServiceRemove()
 	}
 
 	/* Connect to service */
-	service_handle = OpenService(service_manager, "EvtSys", SERVICE_ALL_ACCESS);
+	service_handle = OpenService(service_manager, "CLFAgent", SERVICE_ALL_ACCESS);
 	if (service_handle == NULL) {
 		Log(LOG_ERROR|LOG_SYS, "Cannot open service");
 	} else {
@@ -147,7 +147,7 @@ static void WINAPI ServiceChange(DWORD code)
 static void WINAPI ServiceMain(DWORD argc, LPTSTR * argv)
 {
 	/* Register a control function to the service manager */
-	ServiceStatusHandle = RegisterServiceCtrlHandler("EvtSys", ServiceChange);
+	ServiceStatusHandle = RegisterServiceCtrlHandler("CLFAgent", ServiceChange);
 	if (ServiceStatusHandle == 0) {
 		Log(LOG_ERROR|LOG_SYS, "Cannot register a control handler for service");
 		return;

@@ -310,15 +310,16 @@ char * EventlogNext(int log, int * level)
 	message_file = LookupMessageFile(EventlogList[log].name, source);
 	if (message_file == NULL)
 		return NULL;
-		
+
 	/* Format eventlog message */
 	formatted_string = FormatLibraryMessage(message_file, event->EventID, string_array);
 	if (formatted_string == NULL)
 		return NULL;
 
 	/* Output message */
-	_snprintf(message, sizeof(message), "%s: %s: %s",
+	_snprintf(message, sizeof(message), "%s (%lu): %s: %s",
 		source,
+		event->EventID & 0x0000FFFF,
 		username,
 		formatted_string);
 	return message;

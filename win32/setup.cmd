@@ -3,7 +3,7 @@
 rem
 rem   Set up for Visual Studio C
 rem
-call "C:\Program Files\Microsoft Visual Studio\VC98\Bin\vcvars32.bat"
+call "C:\Program Files\Microsoft Visual Studio .NET\Vc7\bin\vcvars32.bat"
 
 rem
 rem  Set up for Wordpad

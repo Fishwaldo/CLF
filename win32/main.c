@@ -121,8 +121,11 @@ static void mainUsage()
 		fputc('\n', stderr);
 		fprintf(stderr, "Default port: %u\n", SYSLOG_DEF_PORT);
 		fputs("Host (-h) required if installing.\n", stderr);
-	} else
+		Sleep(10000);
+	} else {
 		Log(LOG_ERROR, "Invalid flag usage; Check startup parameters");
+		Sleep(10000);
+	}
 }
 
 /* Process flags */
@@ -144,6 +147,7 @@ static int mainProcessFlags(int argc, char ** argv)
 			break;
 		case 'h':
 			ProgramSyslogLogHost = GetOptArg;
+			printf("%s\n", ProgramSyslogLogHost);
 			break;
 		case 'p':
 			ProgramSyslogPort = GetOptArg;

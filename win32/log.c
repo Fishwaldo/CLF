@@ -54,7 +54,7 @@ int LogStart()
 	LogInteractive = _isatty(_fileno(stdout));
 
 	/* Open connection to event logger */
-	LogSource = RegisterEventSource(NULL, "EvtSys");
+	LogSource = RegisterEventSource(NULL, "CLFAgent");
 	if (LogSource == NULL) {
 		Log(LOG_ERROR|LOG_SYS, "Cannot register source for event logging");
 		return 1;
@@ -156,6 +156,7 @@ void Log(int level, char * message, ...)
 		LogSend(eventlog_priority, error_message);
 
 	/* Output to console */
+
 	if (LogInteractive) {
 		fputs(error_message, stderr);
 		fputc('\n', stderr);

@@ -57,7 +57,7 @@ int MainLoop()
 		return 1;
 
 	/* Service is now running */
-	Log(LOG_INFO, "Eventlog to Syslog Service Started: Version 3.4");
+	Log(LOG_INFO, "Centralized Logging Agent Service Started: Version 1.0");
 
 	/* Loop while service is running */
 	do {
@@ -79,7 +79,7 @@ int MainLoop()
 	} while (ServiceIsRunning);
 
 	/* Service is stopped */
-	Log(LOG_INFO, "Eventlog to Syslog Service Stopped");
+	Log(LOG_INFO, "Centralized Logging Agent Service Stopped");
 
 	/* Close eventlogs */
 	EventlogsClose();
